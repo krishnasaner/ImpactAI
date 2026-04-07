@@ -1,0 +1,42 @@
+/* OpenDyslexic font import - hosted on a CDN */
+@import url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic.css');
+
+:root {
+  --content-font-size: 16px;
+  --content-line-height: 1.5;
+  --content-contrast: 100%;
+  --content-font-family: inherit;
+}
+
+/* Apply reading mode styles to readable content */
+body.reading-mode article,
+body.reading-mode main,
+body.reading-mode .content-area,
+body.reading-mode .readable-content {
+  font-size: var(--content-font-size) !important;
+  line-height: var(--content-line-height) !important;
+  filter: contrast(var(--content-contrast)) !important;
+  font-family: var(--content-font-family, inherit) !important;
+}
+
+/* Heading styles in reading mode */
+body.reading-mode h1,
+body.reading-mode h2,
+body.reading-mode h3,
+body.reading-mode h4,
+body.reading-mode h5,
+body.reading-mode h6 {
+  font-size: calc(var(--content-font-size) * 1.2) !important;
+  line-height: var(--content-line-height) !important;
+  font-family: var(--content-font-family, inherit) !important;
+}
+
+/* Long-form content styles */
+body.reading-mode p,
+body.reading-mode li,
+body.reading-mode blockquote,
+body.reading-mode pre {
+  font-size: var(--content-font-size) !important;
+  line-height: var(--content-line-height) !important;
+  font-family: var(--content-font-family, inherit) !important;
+}

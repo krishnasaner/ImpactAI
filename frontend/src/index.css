@@ -1,0 +1,298 @@
+/* Import modern UI enhancements */
+@import './styles/modern-ui.css';
+@import './styles/enhanced-theme.css';
+@import './styles/accessibility.css';
+@import './styles/reading-mode.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Apply SF Pro Display font to all elements */
+* {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+}
+
+/* Impact AI Design System - Mental Health Platform
+All colors MUST be HSL. Calming, accessible, stigma-free design.
+*/
+
+@layer base {
+  :root {
+    /* Font Family */
+    --font-sans:
+      'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+      Arial, sans-serif;
+
+    /* Core Impact AI Colors - Ocean Coral Gold Theme */
+    --background: 0 0% 100%; /* Neutral White #FFFFFF */
+    --foreground: 220 30% 10%; /* Deep charcoal blue */
+
+    /* Heading Colors - Deep Ocean for Authority */
+    --heading: 200 85% 25%; /* Deep ocean blue for headings */
+    --heading-light: 200 75% 35%; /* Lighter ocean blue variant */
+
+    /* Primary colors - Deep Ocean Blue */
+    --primary: 210 100% 50%; /* Electric Blue */
+    --primary-light: 190 100% 50%; /* Cyan */
+    --primary-glow: 200 100% 70%; /* Light blue glow effect */
+    --primary-variant: 200 100% 45%; /* Electric-cyan variant */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+
+    /* Secondary colors - Living Coral */
+    --secondary: 16 85% 65%; /* Living coral #FF6F61 */
+    --secondary-light: 16 75% 72%; /* Lighter coral */
+    --secondary-variant: 25 75% 60%; /* Peach-coral variant */
+    --secondary-foreground: 0 0% 100%; /* White text on secondary */
+
+    /* Accent color - Golden Amber */
+    --accent: 45 90% 55%; /* Golden amber #F0B429 */
+    --accent-light: 45 85% 65%; /* Lighter golden amber */
+    --accent-variant: 35 85% 60%; /* Warm gold variant */
+    --accent-foreground: 200 15% 15%; /* Dark text on accent */
+
+    /* Trust & Safety Colors */
+    --trust: 200 70% 45%; /* Ocean blue for trust */
+    --trust-foreground: 0 0% 100%;
+    --safety: 140 60% 45%; /* Forest green for safety */
+    --safety-foreground: 0 0% 100%;
+
+    /* Neutral System */
+    --muted: 200 15% 94%; /* Cool light gray */
+    --muted-foreground: 200 10% 45%; /* Medium gray */
+    --card: 200 25% 99%; /* Very light cool white */
+    --card-foreground: 200 15% 15%; /* Updated to match new foreground */
+    --popover: 200 25% 99%; /* Cool white popover */
+    --popover-foreground: 200 15% 15%; /* Updated to match new foreground */
+
+    /* Interactive Elements */
+    --border: 200 20% 85%; /* Cool light border */
+    --input: 200 15% 96%; /* Cool input background */
+    --ring: 200 85% 45%; /* Primary color for focus rings */
+
+    /* Severity Indicators - Ocean Theme */
+    --severity-low: 140 50% 55%; /* Muted green for low severity */
+    --severity-medium: 35 75% 60%; /* Warm amber for medium */
+    --severity-high: 16 75% 60%; /* Coral for high severity */
+    --severity-crisis: 0 70% 50%; /* Deep red for crisis */
+
+    /* Enhanced gradients for beautiful visual effects - Ocean Coral Gold */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+    --gradient-secondary: linear-gradient(
+      135deg,
+      hsl(var(--secondary)),
+      hsl(var(--secondary-variant))
+    );
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+    --gradient-calm: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
+    --gradient-warm: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-variant)));
+    --gradient-aurora: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--accent)) 50%,
+      hsl(var(--secondary)) 100%
+    );
+    --gradient-glass: linear-gradient(
+      135deg,
+      rgba(240, 248, 255, 0.1) 0%,
+      rgba(240, 248, 255, 0.05) 100%
+    );
+    --gradient-mesh:
+      radial-gradient(circle at 20% 80%, hsl(var(--primary) / 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(var(--accent) / 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, hsl(var(--secondary) / 0.1) 0%, transparent 50%);
+
+    /* Enhanced shadow system */
+    --shadow-soft: 0 2px 12px -2px hsl(var(--foreground) / 0.08);
+    --shadow-medium: 0 6px 20px -4px hsl(var(--foreground) / 0.12);
+    --shadow-strong: 0 12px 40px -8px hsl(var(--foreground) / 0.16);
+    --shadow-elegant: 0 15px 40px -10px hsl(var(--primary) / 0.25);
+    --shadow-glow: 0 0 30px hsl(var(--primary) / 0.3);
+    --shadow-aurora: 0 8px 32px -8px hsl(var(--accent) / 0.4);
+    --shadow-glass: 0 8px 32px -8px rgba(31, 38, 135, 0.37);
+
+    /* Animations & Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* Typography Scale */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+
+    /* Spacing System - Essential Only */
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+
+    --radius: 0.5rem;
+    --radius-lg: 0.75rem;
+  }
+
+  .dark {
+    --background: 220 30% 6%; /* #0B0E14 Midnight Slate */
+    --foreground: 210 20% 98%; /* Light cool text */
+
+    /* Dark mode heading colors - Ocean theme */
+    --heading: 200 60% 70%; /* Ocean blue for dark mode headers */
+    --heading-light: 200 50% 60%; /* Lighter ocean blue */
+
+    --primary: 200 70% 55%; /* Brighter ocean for dark mode */
+    --primary-foreground: 200 25% 8%; /* Dark background as text */
+    --primary-light: 200 50% 35%; /* Darker ocean variant */
+    --primary-glow: 200 55% 40%; /* Ocean glow for dark */
+
+    --secondary: 16 70% 60%; /* Brighter coral for dark mode */
+    --secondary-foreground: 200 25% 8%; /* Dark background as text */
+    --secondary-light: 16 45% 35%; /* Darker coral variant */
+
+    --accent: 45 80% 60%; /* Brighter gold for dark mode */
+    --accent-foreground: 200 25% 8%; /* Dark background as text */
+    --accent-light: 45 55% 35%; /* Darker gold variant */
+
+    --muted: 200 20% 12%; /* Cool dark muted */
+    --muted-foreground: 200 10% 65%; /* Cool muted text */
+    --card: 200 20% 10%; /* Cool dark card */
+    --card-foreground: 200 15% 90%; /* Light text on card */
+    --popover: 200 20% 10%; /* Cool dark popover */
+    --popover-foreground: 200 15% 90%; /* Light text on popover */
+
+    --border: 200 15% 20%; /* Cool dark border */
+    --input: 200 15% 15%; /* Cool dark input */
+    --ring: 200 70% 55%; /* Primary color for focus rings */
+
+    --destructive: 0 60% 60%; /* Softer destructive for dark */
+    --destructive-foreground: 0 0% 100%;
+
+    /* Dark mode trust and safety colors */
+    --trust: 200 55% 50%; /* Ocean blue trust for dark */
+    --safety: 140 45% 45%; /* Forest green safety for dark */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Enhanced Heading Styles - Dark Blue Theme */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: hsl(var(--heading));
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+
+  h1 {
+    font-size: var(--font-size-3xl);
+  }
+
+  h2 {
+    font-size: var(--font-size-2xl);
+  }
+
+  h3 {
+    font-size: var(--font-size-xl);
+  }
+
+  h4 {
+    font-size: var(--font-size-lg);
+  }
+
+  h5,
+  h6 {
+    font-size: var(--font-size-base);
+  }
+
+  /* Simplified Card Styling */
+  .calm-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-gentle);
+  }
+
+  .calm-card:hover {
+    box-shadow: var(--shadow-subtle);
+  }
+
+  /* Simple animations */
+  .fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Gentle focus states */
+  .focus-ring:focus {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-15px);
+    }
+  }
+
+  .btn-calm:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Essential utilities */
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Mobile responsive text */
+  @media (max-width: 640px) {
+    h1 {
+      font-size: var(--font-size-2xl);
+    }
+    h2 {
+      font-size: var(--font-size-xl);
+    }
+    h3 {
+      font-size: var(--font-size-lg);
+    }
+  }
+}

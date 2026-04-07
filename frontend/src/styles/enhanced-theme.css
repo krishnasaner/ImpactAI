@@ -1,0 +1,375 @@
+/* Simplified Theme Styles for Mental Health Platform */
+
+/* Dynamic Wallpaper */
+.has-dynamic-wallpaper {
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
+  transition: background 0.5s ease-in-out !important;
+}
+
+.has-dynamic-wallpaper .min-h-screen {
+  background: transparent !important;
+}
+
+.has-dynamic-wallpaper [data-theme="dark"],
+.has-dynamic-wallpaper [data-theme="light"] {
+  background: transparent !important;
+}
+
+/* Essential High Contrast Mode */
+.high-contrast {
+  --background: 255 255 255;
+  --foreground: 0 0 0;
+  --primary: 0 0 0;
+  --primary-foreground: 255 255 255;
+  --border: 128 128 128;
+}
+
+.dark.high-contrast {
+  --background: 0 0 0;
+  --foreground: 255 255 255;
+  --primary: 255 255 255;
+  --primary-foreground: 0 0 0;
+  --border: 128 128 128;
+}
+
+/* Gentle reduced motion */
+.reduce-motion,
+.reduce-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Simple focus indicators for accessibility */
+.focus-visible:focus {
+  outline: 2px solid hsl(var(--primary)) !important;
+  outline-offset: 2px !important;
+}
+
+/* Basic link styling */
+a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .calm-card {
+    padding: 1rem;
+  }
+}
+
+/* Smooth Transitions */
+.smooth-transitions * {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* Reading Mode Styles */
+.reading-mode {
+  --reading-font-size: 16px;
+  --reading-line-height: 1.6;
+  --reading-font-family: system-ui, -apple-system, sans-serif;
+  --reading-background: hsl(var(--background));
+}
+
+.reading-mode .prose,
+.reading-mode article,
+.reading-mode .reading-content,
+.reading-mode .card-content,
+.reading-mode .resource-content {
+  font-size: var(--reading-font-size) !important;
+  line-height: var(--reading-line-height) !important;
+  font-family: var(--reading-font-family) !important;
+  max-width: 65ch !important;
+  margin: 0 auto !important;
+}
+
+.reading-mode .reading-content {
+  background: var(--reading-background);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Reading Mode Typography Enhancements */
+.reading-mode h1,
+.reading-mode h2,
+.reading-mode h3,
+.reading-mode h4,
+.reading-mode h5,
+.reading-mode h6 {
+  font-weight: 600 !important;
+  margin: 1.5em 0 0.5em 0 !important;
+  line-height: 1.3 !important;
+}
+
+.reading-mode p {
+  margin: 1em 0 !important;
+  text-align: left !important;
+  hyphens: auto;
+  word-spacing: 0.1em;
+}
+
+.reading-mode ul,
+.reading-mode ol {
+  margin: 1em 0 !important;
+  padding-left: 2em !important;
+}
+
+.reading-mode li {
+  margin: 0.5em 0 !important;
+}
+
+.reading-mode blockquote {
+  margin: 1.5em 0 !important;
+  padding: 1em !important;
+  border-left: 4px solid hsl(var(--primary)) !important;
+  background: hsl(var(--muted)) !important;
+  font-style: italic;
+}
+
+/* Reading Mode Background Variants */
+.reading-mode.sepia-bg {
+  --reading-background: #f4f1e8;
+  --foreground: 20 14 4;
+}
+
+.reading-mode.dark-bg {
+  --reading-background: #1a1a1a;
+  --foreground: 250 250 250;
+}
+
+/* Reading Mode High Contrast */
+.reading-high-contrast {
+  --foreground: 0 0 0;
+  --muted-foreground: 32 32 32;
+  --border: 64 64 64;
+}
+
+.dark.reading-high-contrast {
+  --foreground: 255 255 255;
+  --muted-foreground: 224 224 224;
+  --border: 192 192 192;
+}
+
+/* Reading Mode Warm Colors */
+.reading-warm-colors {
+  filter: sepia(20%) saturate(80%) hue-rotate(350deg);
+}
+
+/* Reading Mode Reduced Motion */
+.reading-reduced-motion,
+.reading-reduced-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Reading Mode Typography Variants */
+.reading-mode.font-serif {
+  --reading-font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.reading-mode.font-mono {
+  --reading-font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.reading-mode.font-dyslexic {
+  --reading-font-family: 'OpenDyslexic', Arial, sans-serif;
+}
+
+/* Reading Mode Font Sizes */
+.reading-mode.text-small {
+  --reading-font-size: 14px;
+}
+
+.reading-mode.text-large {
+  --reading-font-size: 18px;
+}
+
+.reading-mode.text-extra-large {
+  --reading-font-size: 20px;
+}
+
+/* Reading Mode Line Heights */
+.reading-mode.leading-relaxed {
+  --reading-line-height: 1.7;
+}
+
+.reading-mode.leading-loose {
+  --reading-line-height: 2;
+}
+
+/* Reading Mode Focus Indicators */
+.reading-mode *:focus {
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 2px !important;
+}
+
+/* Reading Mode Link Styling */
+.reading-mode a:not([class*='bg-gradient-primary']) {
+  color: hsl(var(--primary)) !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 2px !important;
+}
+
+.reading-mode .bg-gradient-primary a {
+  color: hsl(var(--primary-foreground)) !important;
+  text-decoration: none !important;
+}
+
+.reading-mode a:hover {
+  text-decoration-thickness: 3px !important;
+  background-color: hsla(var(--primary), 0.1) !important;
+  padding: 0 2px !important;
+  border-radius: 2px !important;
+}
+
+/* Reading Mode Table Styling */
+.reading-mode table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 1.5em 0 !important;
+}
+
+.reading-mode th,
+.reading-mode td {
+  padding: 0.75em !important;
+  border: 1px solid hsl(var(--border)) !important;
+  text-align: left !important;
+}
+
+.reading-mode th {
+  background: hsl(var(--muted)) !important;
+  font-weight: 600 !important;
+}
+
+/* Reading Mode Code Styling */
+.reading-mode code {
+  background: hsl(var(--muted)) !important;
+  padding: 0.2em 0.4em !important;
+  border-radius: 4px !important;
+  font-size: 0.9em !important;
+  font-family: var(--font-mono) !important;
+}
+
+.reading-mode pre {
+  background: hsl(var(--muted)) !important;
+  padding: 1em !important;
+  border-radius: 8px !important;
+  overflow-x: auto !important;
+  margin: 1.5em 0 !important;
+}
+
+.reading-mode pre code {
+  background: none !important;
+  padding: 0 !important;
+}
+
+/* Reading Mode Image Styling */
+.reading-mode img {
+  max-width: 100% !important;
+  height: auto !important;
+  margin: 1.5em 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Custom Accent Color Support */
+.theme-custom-accent {
+  --primary: var(--custom-accent);
+  --primary-foreground: 255 255 255;
+}
+
+/* Reading Mode Toggle Button */
+.reading-mode-toggle {
+  position: fixed;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  z-index: 1000;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.reading-mode-toggle:hover {
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode specific adjustments */
+.dark .reading-mode-toggle {
+  background: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+
+/* Reading Mode Animation */
+@keyframes reading-mode-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reading-mode .reading-content {
+  animation: reading-mode-enter 0.3s ease-out;
+}
+
+/* Responsive Reading Mode */
+@media (max-width: 768px) {
+  .reading-mode .prose,
+  .reading-mode article,
+  .reading-mode .reading-content {
+    padding: 1rem !important;
+    font-size: calc(var(--reading-font-size) * 0.9) !important;
+  }
+
+  .reading-mode-toggle {
+    right: 0.5rem;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Print styles for reading mode */
+@media print {
+  .reading-mode {
+    background: white !important;
+    color: black !important;
+  }
+
+  .reading-mode-toggle {
+    display: none !important;
+  }
+
+  .reading-mode .reading-content {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}
