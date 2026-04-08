@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pymongo
+passlib[bcrypt]
+python-jose[cryptography]
+openai
+pandas
+matplotlib
+seaborn
+httpx

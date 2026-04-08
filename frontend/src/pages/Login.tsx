@@ -55,8 +55,7 @@ const Login = () => {
   setIsLoading(true);
 
   try {
-    // Replace this with your actual login API call
-    const res = await axios.post('/api/auth/login', credentials, { withCredentials: true });
+    const res = await axios.post('http://localhost:5000/auth/login', credentials, { withCredentials: true });
     const user = res.data.user;
 
     if (user) {

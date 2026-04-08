@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axios.get("/api/auth/me", { withCredentials: true });
+        const res = await axios.get("http://localhost:5000/api/auth/me", { withCredentials: true });
         setUser(res.data.user);
       } catch {
         setUser(null);

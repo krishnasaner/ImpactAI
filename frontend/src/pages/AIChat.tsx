@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Heart, MessageCircle, Clock, AlertTriangle, CheckCircle, Shield, Sparkles, Phone } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 interface Message {
   id: string;
@@ -30,50 +31,49 @@ const AIChat = () => {
     scrollToBottom();
   }, [messages]);
 
-  // AI response generator (simplified)
-  const generateAIResponse = (userMessage: string): Message => {
-    const lower = userMessage.toLowerCase();
-    let severity: Message['severity'] = 'low';
-    let response = 'Thanks for sharing. I am here to support you!';
-    let suggestions: string[] = [
-      "Tell me more",
-      "Help me relax",
-      "I need study tips",
-    ];
-
-    if (lower.includes('suicide') || lower.includes('kill myself')) {
-      severity = 'crisis';
-      response = `I'm very concerned. Please seek immediate help:
-- Lifeline: 988
-- Text HOME to 741741
-- Campus Counseling`;
-      suggestions = ['Connect me with crisis support'];
-    } else if (lower.includes('panic') || lower.includes('breakdown')) {
-      severity = 'high';
-      response = `I hear you’re struggling. Take slow breaths and try grounding techniques.`;
-      suggestions = ['Teach me breathing exercises'];
-    } else if (lower.includes('anxious') || lower.includes('stressed')) {
-      severity = 'medium';
-      response = `It sounds stressful. Let's explore some coping strategies.`;
-      suggestions = ['Help me manage stress'];
-    }
-
-    return { id: Date.now().toString(), text: response, sender: 'ai', timestamp: new Date(), severity, suggestions };
-  };
-
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
-    const userMessage: Message = { id: Date.now().toString(), text: inputText, sender: 'user', timestamp: new Date() };
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputText,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+
     setMessages((prev) => [...prev, userMessage]);
     setInputText('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const aiResponse = generateAIResponse(inputText);
+    try {
+      const res = await fetch('http://localhost:5000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: inputText }),
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        throw new Error(payload?.detail || 'AI service request failed.');
+      }
+
+      const data = await res.json();
+      const aiResponse: Message = {
+        id: Date.now().toString(),
+        text: data.text || 'I am here to support you.',
+        sender: 'ai',
+        timestamp: new Date(),
+        severity: data.severity || 'low',
+        suggestions: data.suggestions || [],
+      };
       setMessages((prev) => [...prev, aiResponse]);
+    } catch (error) {
+      console.error(error);
+      toast.error('Unable to connect to the AI backend. Please try again later.');
+    } finally {
       setIsTyping(false);
-    }, 1200);
+    }
   };
 
   const getSeverityColor = (severity?: string) => {
