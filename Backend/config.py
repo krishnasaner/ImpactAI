@@ -46,6 +46,9 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REDIRECT_URI = os.getenv(
     "GOOGLE_REDIRECT_URI", "http://localhost:5000/auth/google/callback"
 )
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8080")
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
 
 # ── Training data ──────────────────────────────────────────────────────────────
 TRAIN_CSV_PATH = BASE_DIR / "data" / "train.csv"

@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
 import { Heart, Mail, Lock, User, Shield, GraduationCap } from 'lucide-react';
 import { LoginCredentials } from '@/types/auth';
 import PageTransition from '@/components/ui/PageTransition';
@@ -13,12 +12,15 @@ import ScrollFadeIn from '@/components/ui/ScrollFadeIn';
 import { FaGoogle } from 'react-icons/fa';
 import { toast } from '@/components/ui/sonner';
 import axios from 'axios';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isLoading, setIsLoading] = useState(false); // add this at the top
-
+  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
+  const [isCheckingGoogleAuth, setIsCheckingGoogleAuth] = useState(true);
 
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
@@ -26,63 +28,107 @@ const Login = () => {
     role: 'student',
   });
 
-  // Store user info in localStorage
-  const handleLoginSuccess = (user: { name: string; role: string; token: string }) => {
+  const getDashboardRoute = (role: string) =>
+    role === 'admin' || role === 'counselor' ? '/app/admin-dashboard' : '/app/student-dashboard';
+
+  const handleLoginSuccess = (user: {
+    id?: string;
+    name: string;
+    email?: string;
+    role: 'student' | 'counselor' | 'admin';
+    token: string;
+  }) => {
     localStorage.setItem('userName', user.name);
+    localStorage.setItem('userEmail', user.email || '');
     localStorage.setItem('userRole', user.role);
     localStorage.setItem('token', user.token);
+
+    login({
+      id: user.id || 'current-user',
+      name: user.name,
+      email: user.email || '',
+      role: user.role,
+    });
   };
 
-  // Handle Google OAuth redirect
+  useEffect(() => {
+    const checkGoogleAuthAvailability = async () => {
+      try {
+        const API_BASE_URL =
+          import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+        const response = await axios.get(`${API_BASE_URL}/auth/google/status`);
+        setIsGoogleEnabled(Boolean(response.data?.configured));
+      } catch {
+        setIsGoogleEnabled(false);
+      } finally {
+        setIsCheckingGoogleAuth(false);
+      }
+    };
+
+    void checkGoogleAuthAvailability();
+  }, []);
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+    const id = params.get('id');
     const name = params.get('name');
+    const email = params.get('email');
     const role = params.get('role');
     const token = params.get('token');
     const error = params.get('error');
 
     if (error) {
       toast.error(error);
-    } else if (name && role && token) {
-      handleLoginSuccess({ name, role, token });
+      return;
+    }
+
+    if (name && role && token) {
+      handleLoginSuccess({
+        id: id || undefined,
+        name,
+        email: email || '',
+        role: role as 'student' | 'counselor' | 'admin',
+        token,
+      });
       toast.success(`Welcome back, ${name}!`);
-      navigate('/'); // redirect to dashboard
+      navigate(getDashboardRoute(role), { replace: true });
     }
   }, [location, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
+    e.preventDefault();
+    setIsLoading(true);
 
-  try {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
-    const res = await axios.post(`${API_BASE_URL}/auth/login`, credentials, { withCredentials: true });
-    const user = res.data.user;
+    try {
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+      const res = await axios.post(`${API_BASE_URL}/auth/login`, credentials, {
+        withCredentials: true,
+      });
+      const user = res.data.user;
 
-    if (user) {
+      if (!user) {
+        toast.error('Login failed. Please check your credentials.');
+        return;
+      }
+
       handleLoginSuccess({
+        id: String(user.id),
         name: user.name,
+        email: user.email,
         role: user.role,
         token: res.data.token,
       });
 
       toast.success('Logged in successfully!');
-      if (user.role === 'admin' || user.role === 'counselor') {
-        navigate('/app/admin-dashboard');
-      } else {
-        navigate('/app/student-dashboard');
-      }
-    } else {
-      toast.error('Login failed. Please check your credentials.');
+      navigate(getDashboardRoute(user.role));
+    } catch (error) {
+      console.error(error);
+      toast.error('Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error(error);
-    toast.error('Login failed. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+  };
 
   const handleRoleChange = (role: 'student' | 'counselor' | 'admin') => {
     const demoCredentials = {
@@ -94,8 +140,16 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || `http://localhost:5000`;
-    window.open(`${API_BASE_URL}/auth/google?role=${credentials.role}`, '_self');
+    if (!isGoogleEnabled) {
+      toast.error(
+        'Google sign-in is not configured yet. Please use email and password login for now.'
+      );
+      return;
+    }
+
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+    window.open(`${API_BASE_URL}/auth/google?role=${credentials.role}&next=login`, '_self');
   };
 
   const getRoleIcon = (role: string) => {
@@ -132,7 +186,11 @@ const Login = () => {
             <ScrollFadeIn yOffset={20}>
               <div className="text-center space-y-2">
                 <Link to="/" className="flex items-center justify-center space-x-2 group">
-                  <img src="/ImpactAI_logo.png" alt="Impact AI Logo" className="h-20 md:h-28 w-auto mx-auto object-contain" />
+                  <img
+                    src="/ImpactAI_logo.png"
+                    alt="Impact AI Logo"
+                    className="h-20 md:h-28 w-auto mx-auto object-contain"
+                  />
                 </Link>
                 <p className="text-muted-foreground">Your trusted mental health companion</p>
               </div>
@@ -170,7 +228,9 @@ const Login = () => {
                             {getRoleIcon(role)}
                             <span className="font-medium capitalize">{role} Portal</span>
                           </div>
-                          <p className="text-sm text-muted-foreground">{getRoleDescription(role)}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {getRoleDescription(role)}
+                          </p>
                         </div>
                       </TabsContent>
                     ))}
@@ -229,9 +289,14 @@ const Login = () => {
                     variant="outline"
                     size="lg"
                     className="w-full mt-4 flex items-center justify-center space-x-2"
+                    disabled={isCheckingGoogleAuth}
                   >
                     <FaGoogle className="h-5 w-5" />
-                    <span>Sign in with Google</span>
+                    <span>
+                      {isCheckingGoogleAuth
+                        ? 'Checking Google Sign-In...'
+                        : 'Sign in with Google'}
+                    </span>
                   </Button>
 
                   <div className="mt-6 text-center text-sm">
@@ -246,9 +311,9 @@ const Login = () => {
 
             <ScrollFadeIn delay={0.11}>
               <div className="text-center space-y-2 text-sm md:text-base text-muted-foreground">
-                <p>🔒 Your privacy is protected with end-to-end encryption</p>
-                <p>💬 Confidential support available 24/7</p>
-                <p>🏥 HIPAA compliant and stigma-free environment</p>
+                <p>Your privacy is protected with end-to-end encryption</p>
+                <p>Confidential support available 24/7</p>
+                <p>HIPAA compliant and stigma-free environment</p>
               </div>
             </ScrollFadeIn>
           </div>

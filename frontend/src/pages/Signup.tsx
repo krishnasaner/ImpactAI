@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,8 @@ import { Heart, Mail, Lock, User, Shield, GraduationCap } from 'lucide-react';
 import PageTransition from '@/components/ui/PageTransition';
 import ScrollFadeIn from '@/components/ui/ScrollFadeIn';
 import { FaGoogle } from 'react-icons/fa';
+import { useAuth } from '@/contexts/AuthContext';
+
 interface SignupCredentials {
   email: string;
   password: string;
@@ -18,12 +20,69 @@ interface SignupCredentials {
 
 const Signup = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const [credentials, setCredentials] = useState<SignupCredentials>({
     email: '',
     password: '',
     role: 'student',
   });
   const [loading, setLoading] = useState(false);
+  const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
+  const [isCheckingGoogleAuth, setIsCheckingGoogleAuth] = useState(true);
+
+  const getDashboardRoute = (role: string) =>
+    role === 'admin' || role === 'counselor' ? '/app/admin-dashboard' : '/app/student-dashboard';
+
+  useEffect(() => {
+    const checkGoogleAuthAvailability = async () => {
+      try {
+        const API_BASE_URL =
+          import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+        const res = await fetch(`${API_BASE_URL}/auth/google/status`);
+        const data = await res.json();
+        setIsGoogleEnabled(Boolean(data?.configured));
+      } catch {
+        setIsGoogleEnabled(false);
+      } finally {
+        setIsCheckingGoogleAuth(false);
+      }
+    };
+
+    void checkGoogleAuthAvailability();
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    const name = params.get('name');
+    const email = params.get('email');
+    const role = params.get('role');
+    const token = params.get('token');
+    const error = params.get('error');
+
+    if (error) {
+      toast.error(error);
+      return;
+    }
+
+    if (name && role && token) {
+      localStorage.setItem('userName', name);
+      localStorage.setItem('userEmail', email || '');
+      localStorage.setItem('userRole', role);
+      localStorage.setItem('token', token);
+
+      login({
+        id: id || 'current-user',
+        name,
+        email: email || '',
+        role: role as 'student' | 'counselor' | 'admin',
+      });
+
+      toast.success(`Welcome, ${name}!`);
+      navigate(getDashboardRoute(role), { replace: true });
+    }
+  }, [location, login, navigate]);
 
   const handleRoleChange = (role: 'student' | 'counselor' | 'admin') => {
     setCredentials({ ...credentials, role });
@@ -31,19 +90,27 @@ const Signup = () => {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'student': return <GraduationCap className="h-4 w-4" />;
-      case 'counselor': return <Heart className="h-4 w-4" />;
-      case 'admin': return <Shield className="h-4 w-4" />;
-      default: return <User className="h-4 w-4" />;
+      case 'student':
+        return <GraduationCap className="h-4 w-4" />;
+      case 'counselor':
+        return <Heart className="h-4 w-4" />;
+      case 'admin':
+        return <Shield className="h-4 w-4" />;
+      default:
+        return <User className="h-4 w-4" />;
     }
   };
 
   const getRoleDescription = (role: string) => {
     switch (role) {
-      case 'student': return 'Access AI support, book sessions, and join peer forums';
-      case 'counselor': return 'Manage sessions, provide support, and access resources';
-      case 'admin': return 'View analytics, manage users, and oversee platform';
-      default: return '';
+      case 'student':
+        return 'Access AI support, book sessions, and join peer forums';
+      case 'counselor':
+        return 'Manage sessions, provide support, and access resources';
+      case 'admin':
+        return 'View analytics, manage users, and oversee platform';
+      default:
+        return '';
     }
   };
 
@@ -51,12 +118,13 @@ const Signup = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
       const res = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
-        credentials: 'include', // to accept cookies if JWT is set as httpOnly
+        credentials: 'include',
       });
 
       if (!res.ok) {
@@ -66,18 +134,21 @@ const Signup = () => {
 
       const data = await res.json();
       const user = data.user;
-      
+
       localStorage.setItem('userName', user.name || user.email);
+      localStorage.setItem('userEmail', user.email || credentials.email);
       localStorage.setItem('userRole', user.role);
       localStorage.setItem('token', data.token);
 
+      login({
+        id: String(user.id),
+        name: user.name || user.email,
+        email: user.email || credentials.email,
+        role: user.role,
+      });
+
       toast.success('Account created successfully!');
-      
-      if (user.role === 'admin' || user.role === 'counselor') {
-        navigate('/app/admin-dashboard');
-      } else {
-        navigate('/app/student-dashboard');
-      }
+      navigate(getDashboardRoute(user.role));
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || 'Signup failed. Please check your credentials.');
@@ -87,9 +158,16 @@ const Signup = () => {
   };
 
   const handleGoogleSignup = () => {
-    // Redirect to backend Google OAuth route with selected role
-    const API_BASE_URL = import.meta.env.VITE_API_URL || `http://localhost:5000`;
-    window.location.href = `${API_BASE_URL}/auth/google?role=${credentials.role}`;
+    if (!isGoogleEnabled) {
+      toast.error(
+        'Google sign-up is not configured yet. Please use email and password signup for now.'
+      );
+      return;
+    }
+
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+    window.location.href = `${API_BASE_URL}/auth/google?role=${credentials.role}&next=signup`;
   };
 
   return (
@@ -100,7 +178,11 @@ const Signup = () => {
             <ScrollFadeIn yOffset={20}>
               <div className="text-center space-y-2">
                 <Link to="/" className="flex items-center justify-center space-x-2 group">
-                  <img src="/ImpactAI_logo.png" alt="Impact AI Logo" className="h-20 md:h-28 w-auto mx-auto object-contain" />
+                  <img
+                    src="/ImpactAI_logo.png"
+                    alt="Impact AI Logo"
+                    className="h-20 md:h-28 w-auto mx-auto object-contain"
+                  />
                 </Link>
                 <p className="text-muted-foreground">Your trusted mental health companion</p>
               </div>
@@ -138,7 +220,9 @@ const Signup = () => {
                             {getRoleIcon(role)}
                             <span className="font-medium capitalize">{role} Portal</span>
                           </div>
-                          <p className="text-sm text-muted-foreground">{getRoleDescription(role)}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {getRoleDescription(role)}
+                          </p>
                         </div>
                       </TabsContent>
                     ))}
@@ -197,9 +281,14 @@ const Signup = () => {
                     variant="outline"
                     size="lg"
                     className="w-full mt-4 flex items-center justify-center space-x-2"
+                    disabled={isCheckingGoogleAuth}
                   >
                     <FaGoogle className="h-5 w-5" />
-                    <span>Sign up with Google</span>
+                    <span>
+                      {isCheckingGoogleAuth
+                        ? 'Checking Google Sign-Up...'
+                        : 'Sign up with Google'}
+                    </span>
                   </Button>
 
                   <div className="mt-6 text-center text-sm">
@@ -214,9 +303,9 @@ const Signup = () => {
 
             <ScrollFadeIn delay={0.11}>
               <div className="text-center space-y-2 text-sm md:text-base text-muted-foreground">
-                <p>🔒 Your privacy is protected with end-to-end encryption</p>
-                <p>💬 Confidential support available 24/7</p>
-                <p>🏥 HIPAA compliant and stigma-free environment</p>
+                <p>Your privacy is protected with end-to-end encryption</p>
+                <p>Confidential support available 24/7</p>
+                <p>HIPAA compliant and stigma-free environment</p>
               </div>
             </ScrollFadeIn>
           </div>
