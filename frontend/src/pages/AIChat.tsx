@@ -46,7 +46,8 @@ const AIChat = () => {
     setIsTyping(true);
 
     try {
-      const res = await fetch(`http://${window.location.hostname}:5000/chat`, {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+      const res = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: inputText }),

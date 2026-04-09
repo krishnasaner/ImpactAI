@@ -55,7 +55,8 @@ const Login = () => {
   setIsLoading(true);
 
   try {
-    const res = await axios.post(`http://${window.location.hostname}:5000/auth/login`, credentials, { withCredentials: true });
+    const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+    const res = await axios.post(`${API_BASE_URL}/auth/login`, credentials, { withCredentials: true });
     const user = res.data.user;
 
     if (user) {
@@ -93,7 +94,8 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.open(`http://localhost:5000/auth/google?role=${credentials.role}`, '_self');
+    const API_BASE_URL = import.meta.env.VITE_API_URL || `http://localhost:5000`;
+    window.open(`${API_BASE_URL}/auth/google?role=${credentials.role}`, '_self');
   };
 
   const getRoleIcon = (role: string) => {

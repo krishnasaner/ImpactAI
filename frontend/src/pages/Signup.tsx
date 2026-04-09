@@ -51,7 +51,8 @@ const Signup = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`http://${window.location.hostname}:5000/auth/signup`, {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+      const res = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
@@ -87,7 +88,8 @@ const Signup = () => {
 
   const handleGoogleSignup = () => {
     // Redirect to backend Google OAuth route with selected role
-    window.location.href = `http://localhost:5000/auth/google?role=${credentials.role}`;
+    const API_BASE_URL = import.meta.env.VITE_API_URL || `http://localhost:5000`;
+    window.location.href = `${API_BASE_URL}/auth/google?role=${credentials.role}`;
   };
 
   return (

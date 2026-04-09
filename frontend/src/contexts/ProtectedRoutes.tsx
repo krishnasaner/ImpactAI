@@ -14,7 +14,8 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axios.get(`http://${window.location.hostname}:5000/api/auth/me`, { withCredentials: true });
+        const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+        const res = await axios.get(`${API_BASE_URL}/api/auth/me`, { withCredentials: true });
         setUser(res.data.user);
       } catch {
         setUser(null);
