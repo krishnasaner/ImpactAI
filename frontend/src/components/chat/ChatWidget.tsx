@@ -134,7 +134,7 @@ const multilingualResponses: Record<
 > = {
   en: {
     welcome:
-      "Hi! I'm your Impact AI AI assistant. I'm here to provide immediate support and help assess how you're feeling. How are you doing today?",
+      "Hi! I'm Zenith, your Impact AI support companion. I'm here to provide immediate support and help assess how you're feeling. How are you doing today?",
     responses: [
       {
         content:
@@ -650,8 +650,8 @@ const ChatWidget = () => {
       case 'emergency': {
         // Redirect to crisis helpline or emergency services
         const emergencyNumbers = {
-          en: '988', // US Suicide & Crisis Lifeline
-          es: '717-394-2631', // National Suicide Prevention Lifeline (Spanish)
+          en: '14416', // Tele-MANAS India
+          es: '18008914416', // Tele-MANAS fallback
           hi: '9152987821', // AASRA India
         };
         const number =
@@ -1116,7 +1116,7 @@ const ChatWidget = () => {
         <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
           <div className="flex items-center space-x-2">
             <Heart className="h-5 w-5 text-primary" />
-            <CardTitle className="text-sm">Impact AI AI Support</CardTitle>
+            <CardTitle className="text-sm">Zenith Support</CardTitle>
             <div className="flex items-center space-x-1">
               {isOnline ? (
                 <Wifi className="h-4 w-4 text-green-500" />

@@ -40,8 +40,8 @@ SYSTEM_PROMPT = (
     "  medium  — mild distress, anxiety, or sadness\n"
     "  high    — significant distress, self-harm ideation without plan\n"
     "  crisis  — active suicidal ideation, self-harm plan, or emergency\n"
-    "If severity is crisis, always include emergency helpline numbers "
-    "(988 Suicide & Crisis Lifeline, 741741 Crisis Text Line).\n"
+    "If severity is crisis, always include India emergency helpline numbers "
+    "(Tele-MANAS 14416 / 1800-89-14416, AASRA +91-22-27546669, Emergency 112).\n"
     "Do NOT include any additional keys."
 )
 

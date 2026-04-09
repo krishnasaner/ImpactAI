@@ -235,7 +235,12 @@ const StudentDashboard = () => {
   }, [logActivity, checkAchievements, moods, goals]);
 
   const getGreeting = () => {
-    const hour = currentTime.getHours();
+    const formattedHour = new Intl.DateTimeFormat('en-IN', {
+      hour: 'numeric',
+      hour12: false,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    }).format(currentTime);
+    const hour = Number.parseInt(formattedHour, 10);
     if (hour < 12) return 'Good Morning';
     if (hour < 17) return 'Good Afternoon';
     return 'Good Evening';
@@ -300,7 +305,7 @@ const StudentDashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
             <ActionCard
               title="AI Support Chat"
-              description="Instant mental health support with our compassionate AI companion"
+              description="Instant mental health support with Zenith, your compassionate AI companion"
               icon={Brain}
               href="/app/chat"
               badge="Available 24/7"
@@ -537,7 +542,7 @@ const StudentDashboard = () => {
                 Need immediate support?
               </h3>
               <p className="text-muted-foreground">
-                Our AI chat is available 24/7 for instant mental health assistance
+                Zenith is available 24/7 for instant mental health assistance
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -547,13 +552,13 @@ const StudentDashboard = () => {
                   onClick={() =>
                     logActivity(
                       'chat',
-                      'Started AI Chat from quick access',
+                      'Started Zenith chat from quick access',
                       'Dashboard quick access button'
                     )
                   }
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  Start AI Chat
+                  Start Zenith
                 </Link>
               </Button>
               <Button variant="outline" asChild className="border-primary/30 hover:bg-primary/10">
@@ -592,8 +597,8 @@ const StudentDashboard = () => {
 
             <p className="text-red-700 leading-relaxed max-w-2xl mx-auto">
               If you're experiencing a mental health crisis, having thoughts of self-harm, or need
-              immediate support, please don't hesitate to reach out. You are not alone, and help is
-              available right now.
+              immediate support, please reach out right away. You are not alone, and help is
+              available across India right now.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
@@ -601,18 +606,20 @@ const StudentDashboard = () => {
                 variant="destructive"
                 size="lg"
                 className="shadow-soft hover:shadow-medium btn-enhanced bg-gradient-to-r from-red-600 to-red-700"
+                onClick={() => window.open('tel:14416', '_self')}
               >
                 <Phone className="h-4 w-4 mr-2" />
-                Crisis Line: 988
+                Tele-MANAS: 14416
               </Button>
 
               <Button
                 variant="outline"
                 size="lg"
                 className="border-red-300 text-red-700 hover:bg-red-50 shadow-soft hover:shadow-medium btn-enhanced"
+                onClick={() => window.open('tel:+912227546669', '_self')}
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
-                Text: HOME to 741741
+                AASRA: +91 22 2754 6669
               </Button>
 
               <Button
@@ -626,13 +633,13 @@ const StudentDashboard = () => {
                   onClick={() =>
                     logActivity(
                       'chat',
-                      'Emergency AI Chat',
-                      'Crisis support - Emergency AI chat accessed'
+                      'Emergency Zenith chat',
+                      'Crisis support - Emergency Zenith chat accessed'
                     )
                   }
                 >
                   <Brain className="h-4 w-4 mr-2" />
-                  Emergency AI Chat
+                  Emergency Zenith
                 </Link>
               </Button>
             </div>
@@ -662,7 +669,7 @@ const StudentDashboard = () => {
       </div>
 
       {/* Floating Mood Button */}
-      <FloatingMoodButton position="bottom-right" showOnlyIfNotLogged={true} />
+      <FloatingMoodButton position="bottom-right" showOnlyIfNotLogged={false} />
     </div>
   );
 };

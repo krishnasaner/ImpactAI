@@ -1,7 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
-import ChatWidget from '@/components/chat/ChatWidget';
 import { BackgroundMusicPlayer } from '@/components/music/BackgroundMusicPlayer';
 import { AchievementNotificationManager } from '@/components/dashboard/AchievementNotification';
 import { RealTimeNotificationManager } from '@/components/dashboard/RealTimeFeedback';
@@ -16,8 +15,6 @@ const Layout = () => {
       </main>
       <Footer />
 
-      {/* All features rendered unconditionally; ProtectedRoute ensures only logged-in users can access */}
-      <ChatWidget />
       <BackgroundMusicPlayer />
       <AchievementNotificationManager />
       <RealTimeNotificationManager />

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -372,6 +373,7 @@ const mockCounselors: Counselor[] = [
 ];
 
 const Booking = () => {
+  const location = useLocation();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedCounselor, setSelectedCounselor] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -427,6 +429,13 @@ const Booking = () => {
   const [slotWatchers, setSlotWatchers] = useState<{ [key: string]: number }>({});
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('mode') === 'anonymous') {
+      setIsAnonymous(true);
+    }
+  }, [location.search]);
 
   // Real-time availability updater
   useEffect(() => {
@@ -1136,7 +1145,7 @@ const Booking = () => {
               {isUrgent && (
                 <div className="mt-3 p-3 bg-severity-medium/10 rounded-lg">
                   <p className="text-sm text-severity-medium">
-                    For immediate crisis support, please call the crisis helpline: 988
+                    For immediate crisis support in India, call Tele-MANAS at 14416.
                   </p>
                 </div>
               )}
@@ -2164,13 +2173,18 @@ const Booking = () => {
             <div className="flex-1 min-w-0">
               <p className="font-medium text-severity-high">In Crisis? Get Immediate Help</p>
               <p className="text-sm text-muted-foreground mt-1">
-                If you're having thoughts of self-harm, call 988 (Suicide & Crisis Lifeline) or
-                visit your nearest emergency room.
+                If you're having thoughts of self-harm, call Tele-MANAS on 14416 or AASRA on
+                +91 22 2754 6669, or visit your nearest emergency room.
               </p>
             </div>
-            <Button variant="destructive" size="sm" className="flex-shrink-0">
+            <Button
+              variant="destructive"
+              size="sm"
+              className="flex-shrink-0"
+              onClick={() => window.open('tel:14416', '_self')}
+            >
               <PhoneCall className="h-4 w-4 mr-1" />
-              Call 988
+              Call 14416
             </Button>
           </div>
         </CardContent>

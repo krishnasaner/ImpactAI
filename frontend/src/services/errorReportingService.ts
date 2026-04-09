@@ -148,7 +148,7 @@ const ERROR_PATTERNS = {
 const ERROR_MESSAGES = {
   [ErrorType.NETWORK]: {
     default: "We're having trouble connecting to our servers. Please check your internet connection and try again.",
-    crisis: "We're having connection issues, but help is still available. If this is urgent, please call 988 or text HOME to 741741."
+    crisis: "We're having connection issues, but help is still available. If this is urgent, call Tele-MANAS at 14416 or AASRA at +91 22 2754 6669."
   },
   [ErrorType.CHUNK_LOAD]: {
     default: "We're updating the app to serve you better. Please refresh the page to get the latest version.",
@@ -164,7 +164,7 @@ const ERROR_MESSAGES = {
   },
   [ErrorType.AUTHENTICATION]: {
     default: "Your session has expired. Please log in again to continue.",
-    crisis: "Session expired. For immediate support without logging in, please call 988."
+    crisis: "Session expired. For immediate support without logging in, please call Tele-MANAS at 14416."
   },
   [ErrorType.RUNTIME]: {
     default: "Something unexpected happened. Your data is safe, and we're working to fix this issue.",

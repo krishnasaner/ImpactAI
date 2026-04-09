@@ -6,83 +6,150 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
+interface LoginOptions {
+  token?: string;
+  remember?: boolean;
+  anonymous?: boolean;
+}
+
 interface AuthContextType extends AuthState {
-  login: (userData: User | null) => void;
+  login: (userData: User | null, options?: LoginOptions) => void;
   updateUser: (userData: Partial<User>) => void;
   logout: () => void;
 }
 
+type SessionPersistence = 'local' | 'session';
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_USER_STORAGE_KEY = 'impactai_auth_user';
+const AUTH_TOKEN_STORAGE_KEY = 'impactai_auth_token';
 
-const getStoredUser = (): User | null => {
+const getStorage = (persistence: SessionPersistence) =>
+  persistence === 'session' ? window.sessionStorage : window.localStorage;
+
+const clearLegacyStorage = () => {
+  window.localStorage.removeItem('token');
+  window.localStorage.removeItem('userName');
+  window.localStorage.removeItem('userEmail');
+  window.localStorage.removeItem('userRole');
+  window.sessionStorage.removeItem('token');
+  window.sessionStorage.removeItem('userName');
+  window.sessionStorage.removeItem('userEmail');
+  window.sessionStorage.removeItem('userRole');
+};
+
+const clearStoredAuth = () => {
   if (typeof window === 'undefined') {
-    return null;
+    return;
+  }
+
+  [window.localStorage, window.sessionStorage].forEach((storage) => {
+    storage.removeItem(AUTH_USER_STORAGE_KEY);
+    storage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+  });
+
+  clearLegacyStorage();
+};
+
+const persistSession = (
+  user: User | null,
+  token?: string,
+  persistence: SessionPersistence = 'local'
+) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  clearStoredAuth();
+
+  if (!user) {
+    return;
+  }
+
+  const storage = getStorage(persistence);
+  storage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user));
+  storage.setItem('userName', user.name);
+  storage.setItem('userEmail', user.email);
+  storage.setItem('userRole', user.role);
+
+  if (token) {
+    storage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+    storage.setItem('token', token);
+  }
+};
+
+const getStoredAuth = (): { user: User | null; token: string | null; persistence: SessionPersistence } => {
+  if (typeof window === 'undefined') {
+    return { user: null, token: null, persistence: 'local' };
+  }
+
+  for (const persistence of ['session', 'local'] as const) {
+    const storage = getStorage(persistence);
+
+    try {
+      const storedUser = storage.getItem(AUTH_USER_STORAGE_KEY);
+      const storedToken = storage.getItem(AUTH_TOKEN_STORAGE_KEY) || storage.getItem('token');
+
+      if (storedUser) {
+        return {
+          user: JSON.parse(storedUser) as User,
+          token: storedToken,
+          persistence,
+        };
+      }
+    } catch (error) {
+      console.error('Failed to restore auth state from storage:', error);
+    }
   }
 
   try {
-    const storedUser = localStorage.getItem(AUTH_USER_STORAGE_KEY);
-    if (storedUser) {
-      return JSON.parse(storedUser) as User;
-    }
+    const name = window.localStorage.getItem('userName') || window.sessionStorage.getItem('userName');
+    const email =
+      window.localStorage.getItem('userEmail') || window.sessionStorage.getItem('userEmail') || '';
+    const role =
+      (window.localStorage.getItem('userRole') ||
+        window.sessionStorage.getItem('userRole')) as User['role'] | null;
+    const token = window.localStorage.getItem('token') || window.sessionStorage.getItem('token');
 
-    const name = localStorage.getItem('userName');
-    const email = localStorage.getItem('userEmail') || '';
-    const role = localStorage.getItem('userRole') as User['role'] | null;
-    const token = localStorage.getItem('token');
-
-    if (name && role && token) {
+    if (name && role) {
       return {
-        id: 'local-session',
-        name,
-        email,
-        role,
+        user: {
+          id: 'local-session',
+          name,
+          email,
+          role,
+        },
+        token,
+        persistence: window.sessionStorage.getItem('token') ? 'session' : 'local',
       };
     }
   } catch (error) {
-    console.error('Failed to restore auth state from storage:', error);
+    console.error('Failed to restore auth state from legacy storage:', error);
   }
 
-  return null;
-};
-
-const persistUser = (user: User | null) => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  if (!user) {
-    localStorage.removeItem(AUTH_USER_STORAGE_KEY);
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userRole');
-    return;
-  }
-
-  localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user));
-  localStorage.setItem('userName', user.name);
-  localStorage.setItem('userEmail', user.email);
-  localStorage.setItem('userRole', user.role);
+  return { user: null, token: null, persistence: 'local' };
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>(() => {
-    const storedUser = getStoredUser();
+    const { user, token } = getStoredAuth();
     return {
-      user: storedUser,
-      isAuthenticated: Boolean(storedUser && localStorage.getItem('token')),
+      user,
+      isAuthenticated: Boolean(user && (token || user.isAnonymous)),
     };
   });
 
-  const login = (userData: User | null) => {
+  const login = (userData: User | null, options?: LoginOptions) => {
     if (!userData) {
       return;
     }
 
-    persistUser(userData);
+    const nextUser = options?.anonymous ? { ...userData, isAnonymous: true } : userData;
+    persistSession(nextUser, options?.token, options?.remember === false ? 'session' : 'local');
+
     setAuthState({
-      user: userData,
+      user: nextUser,
       isAuthenticated: true,
     });
   };
@@ -93,8 +160,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return currentState;
       }
 
+      const stored = getStoredAuth();
       const updatedUser = { ...currentState.user, ...userData };
-      persistUser(updatedUser);
+      persistSession(updatedUser, stored.token || undefined, stored.persistence);
 
       return {
         ...currentState,
@@ -104,10 +172,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = () => {
-    persistUser(null);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-    }
+    clearStoredAuth();
 
     setAuthState({
       user: null,

@@ -100,9 +100,9 @@ const AIChat = () => {
       <div className="container mx-auto px-4 py-6 max-w-5xl">
         {/* Chat Header */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold mb-2">Impact AI AI Support</h1>
+          <h1 className="text-3xl font-bold mb-2">Zenith Support</h1>
           <p className="text-muted-foreground">
-            Your personal mental health companion, confidential & 24/7.
+            Zenith is your personal mental health companion, confidential and available 24/7.
           </p>
           <div className="flex justify-center gap-2 mt-2">
             <Badge variant="secondary" className="flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI-Powered</Badge>
@@ -114,7 +114,7 @@ const AIChat = () => {
         {/* Chat Card */}
         <Card className="mb-4">
           <CardHeader className="bg-gradient-to-r from-background to-background/80 p-4">
-            <CardTitle>AI Mental Health Assistant</CardTitle>
+            <CardTitle>Zenith Mental Health Assistant</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-96 p-4">
@@ -145,7 +145,7 @@ const AIChat = () => {
                 {isTyping && (
                   <div className="flex justify-start items-center space-x-2">
                     <Heart className="h-4 w-4 text-secondary animate-pulse" />
-                    <span className="text-xs text-muted-foreground">Impact AI is typing...</span>
+                    <span className="text-xs text-muted-foreground">Zenith is typing...</span>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -174,8 +174,20 @@ const AIChat = () => {
             If you are in crisis or having thoughts of self-harm, seek help immediately.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button variant="destructive" className="flex items-center gap-2"><Phone /> Call 988</Button>
-            <Button variant="outline" className="flex items-center gap-2"><MessageCircle /> Text HOME to 741741</Button>
+            <Button
+              variant="destructive"
+              className="flex items-center gap-2"
+              onClick={() => window.open('tel:14416', '_self')}
+            >
+              <Phone /> Call 14416
+            </Button>
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={() => window.open('tel:+912227546669', '_self')}
+            >
+              <MessageCircle /> Call AASRA
+            </Button>
           </div>
         </Card>
       </div>

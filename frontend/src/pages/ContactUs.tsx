@@ -297,15 +297,15 @@ export default function ContactUs() {
               </p>
               <div className="space-y-2">
                 <p className="text-sm">
-                  <span className="font-medium">Crisis Hotline:</span>{' '}
-                  <a href="tel:988" className={`${isDark ? 'text-cyan-400' : 'text-cyan-600'} hover:underline`}>
-                    988
+                  <span className="font-medium">Tele-MANAS:</span>{' '}
+                  <a href="tel:14416" className={`${isDark ? 'text-cyan-400' : 'text-cyan-600'} hover:underline`}>
+                    14416
                   </a>
                 </p>
                 <p className="text-sm">
                   <span className="font-medium">Emergency:</span>{' '}
-                  <a href="tel:911" className={`${isDark ? 'text-cyan-400' : 'text-cyan-600'} hover:underline`}>
-                    911
+                  <a href="tel:112" className={`${isDark ? 'text-cyan-400' : 'text-cyan-600'} hover:underline`}>
+                    112
                   </a>
                 </p>
               </div>

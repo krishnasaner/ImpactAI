@@ -5,6 +5,7 @@ export interface User {
   name: string;
   email: string;
   role: 'student' | 'counselor' | 'admin';
+  isAnonymous?: boolean;
   avatar?: string;
   phone?: string;
   dateOfBirth?: string;

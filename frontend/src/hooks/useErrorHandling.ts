@@ -317,11 +317,11 @@ export const useCrisisDetection = () => {
   const getCrisisResources = useCallback(() => {
     return {
       hotlines: [
-        { name: '988 Suicide & Crisis Lifeline', number: '988' },
-        { name: 'Crisis Text Line', number: '741741', method: 'text' }
+        { name: 'Tele-MANAS', number: '14416' },
+        { name: 'AASRA', number: '+91 22 27546669', method: 'call' }
       ],
       emergencyContacts: [
-        { name: 'Emergency Services', number: '911' }
+        { name: 'Emergency Services', number: '112' }
       ],
       onlineResources: [
         { name: 'AI Crisis Chat', url: '/app/chat' }

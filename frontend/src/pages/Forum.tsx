@@ -1306,10 +1306,10 @@ const Forum = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
               <Badge variant="outline" className="text-xs">
-                Crisis Line: 988
+                Tele-MANAS: 14416
               </Badge>
               <Badge variant="outline" className="text-xs">
-                Crisis Text: HOME to 741741
+                AASRA: +91 22 2754 6669
               </Badge>
               <Badge variant="outline" className="text-xs">
                 Campus Counseling Available

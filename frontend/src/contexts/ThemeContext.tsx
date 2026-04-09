@@ -72,9 +72,21 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [settings.schedule]);
 
-  // Determine which theme to apply - forced to light mode as requested
+  // Determine which theme should be applied based on preference, system, and schedule
   const determineTheme = useCallback((): 'light' | 'dark' => {
-    return 'light';
+    if (settings.theme === 'dark') {
+      return 'dark';
+    }
+
+    if (settings.theme === 'light') {
+      return 'light';
+    }
+
+    if (settings.theme === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    return checkScheduledTime() ? 'dark' : 'light';
   }, [settings.theme, checkScheduledTime]);
 
   // Apply theme to DOM
@@ -106,6 +118,8 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     // Apply custom accent color if set
     if (settings.preferences.customAccentColor) {
       root.style.setProperty('--custom-accent', settings.preferences.customAccentColor);
+    } else {
+      root.style.removeProperty('--custom-accent');
     }
 
     // Apply dynamic wallpaper

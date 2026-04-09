@@ -9,13 +9,20 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
-  const { login, logout } = useAuth();
+  const { login, logout, user: authUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ role: string } | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+
+      if (authUser?.isAnonymous) {
+        setUser({ role: authUser.role });
+        setLoading(false);
+        return;
+      }
+
       if (!token) {
         setUser(null);
         setLoading(false);
@@ -38,8 +45,9 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
           name: res.data.user.name,
           email: res.data.user.email,
           role: res.data.user.role,
-        });
+        }, { token });
       } catch {
+        sessionStorage.removeItem('token');
         localStorage.removeItem('token');
         logout();
         setUser(null);
@@ -49,7 +57,7 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
     };
 
     void checkAuth();
-  }, [login, logout]);
+  }, [authUser, login, logout]);
 
   if (loading) {
     return (

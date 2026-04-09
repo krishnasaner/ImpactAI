@@ -135,19 +135,19 @@ const CrisisResources: React.FC = () => (
           variant="outline"
           size="sm"
           className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30"
-          onClick={() => window.open('tel:988', '_self')}
+          onClick={() => window.open('tel:14416', '_self')}
         >
           <PhoneIcon className="h-3 w-3 mr-1" />
-          Call 988
+          Call 14416
         </Button>
         <Button
           variant="outline"
           size="sm"
           className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30"
-          onClick={() => window.open('sms:741741', '_self')}
+          onClick={() => window.open('tel:+912227546669', '_self')}
         >
           <ChatBubbleLeftIcon className="h-3 w-3 mr-1" />
-          Text 741741
+          Call AASRA
         </Button>
         <Button
           variant="outline"

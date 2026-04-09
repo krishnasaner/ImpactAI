@@ -67,17 +67,12 @@ const Signup = () => {
     }
 
     if (name && role && token) {
-      localStorage.setItem('userName', name);
-      localStorage.setItem('userEmail', email || '');
-      localStorage.setItem('userRole', role);
-      localStorage.setItem('token', token);
-
       login({
         id: id || 'current-user',
         name,
         email: email || '',
         role: role as 'student' | 'counselor' | 'admin',
-      });
+      }, { token });
 
       toast.success(`Welcome, ${name}!`);
       navigate(getDashboardRoute(role), { replace: true });
@@ -135,17 +130,12 @@ const Signup = () => {
       const data = await res.json();
       const user = data.user;
 
-      localStorage.setItem('userName', user.name || user.email);
-      localStorage.setItem('userEmail', user.email || credentials.email);
-      localStorage.setItem('userRole', user.role);
-      localStorage.setItem('token', data.token);
-
       login({
         id: String(user.id),
         name: user.name || user.email,
         email: user.email || credentials.email,
         role: user.role,
-      });
+      }, { token: data.token });
 
       toast.success('Account created successfully!');
       navigate(getDashboardRoute(user.role));

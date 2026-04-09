@@ -4,7 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { MusicProvider } from '@/contexts/MusicContext';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -42,6 +42,15 @@ const ContactUs = React.lazy(() => import('./pages/ContactUs'));
 const MentalHealthBlog = React.lazy(() => import('./pages/MentalHealthBlog'));
 
 const queryClient = new QueryClient();
+
+const getDashboardPath = () => {
+  const role = sessionStorage.getItem('userRole') || localStorage.getItem('userRole');
+  return role === 'admin' || role === 'counselor'
+    ? '/app/admin-dashboard'
+    : '/app/student-dashboard';
+};
+
+const DashboardRedirect = () => <Navigate to={getDashboardPath()} replace />;
 
 const App = () => (
   <ErrorBoundary componentName="AppRoot" variant="page">
@@ -95,7 +104,8 @@ const App = () => (
                           </ProtectedRoute>
                         }
                       >
-                        <Route index element={<Dashboard />} />
+                        <Route index element={<DashboardRedirect />} />
+                        <Route path="dashboard" element={<DashboardRedirect />} />
                         <Route path="admin-dashboard" element={<Dashboard />} />
                         <Route path="student-dashboard" element={<StudentDashboard />} />
                         <Route path="resources" element={<Resources />} />

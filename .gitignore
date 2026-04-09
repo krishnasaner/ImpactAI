@@ -17,9 +17,6 @@ venv/
 *.db-wal
 *.db-shm
 
-# ML models (large binaries)
-ml_models/*.pkl
-
 # Plots (generated)
 plots/
 

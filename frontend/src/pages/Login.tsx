@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heart, Mail, Lock, User, Shield, GraduationCap } from 'lucide-react';
@@ -21,6 +22,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
   const [isCheckingGoogleAuth, setIsCheckingGoogleAuth] = useState(true);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
@@ -38,17 +40,12 @@ const Login = () => {
     role: 'student' | 'counselor' | 'admin';
     token: string;
   }) => {
-    localStorage.setItem('userName', user.name);
-    localStorage.setItem('userEmail', user.email || '');
-    localStorage.setItem('userRole', user.role);
-    localStorage.setItem('token', user.token);
-
     login({
       id: user.id || 'current-user',
       name: user.name,
       email: user.email || '',
       role: user.role,
-    });
+    }, { token: user.token, remember: rememberMe });
   };
 
   useEffect(() => {
@@ -150,6 +147,21 @@ const Login = () => {
     const API_BASE_URL =
       import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
     window.open(`${API_BASE_URL}/auth/google?role=${credentials.role}&next=login`, '_self');
+  };
+
+  const handleAnonymousContinue = () => {
+    login(
+      {
+        id: 'anonymous-session',
+        name: 'Anonymous User',
+        email: '',
+        role: 'student',
+        isAnonymous: true,
+      },
+      { remember: false, anonymous: true }
+    );
+    toast.success('Anonymous support mode is ready.');
+    navigate('/app/booking?mode=anonymous', { replace: true });
   };
 
   const getRoleIcon = (role: string) => {
@@ -273,6 +285,22 @@ const Login = () => {
                       </div>
                     </div>
 
+                    <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="remember-me"
+                          checked={rememberMe}
+                          onCheckedChange={(checked) => setRememberMe(Boolean(checked))}
+                        />
+                        <Label htmlFor="remember-me" className="cursor-pointer text-sm">
+                          Remember me on this device
+                        </Label>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {rememberMe ? 'Persistent session' : 'Session only'}
+                      </span>
+                    </div>
+
                     <Button
                       type="submit"
                       variant="hero"
@@ -298,6 +326,21 @@ const Login = () => {
                         : 'Sign in with Google'}
                     </span>
                   </Button>
+
+                  <div className="mt-4 rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-4 text-left">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="font-semibold text-foreground">Continue anonymously</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Jump straight into anonymous support and private booking without exposing
+                          your identity in the experience.
+                        </p>
+                      </div>
+                      <Button variant="secondary" onClick={handleAnonymousContinue}>
+                        Anonymous Mode
+                      </Button>
+                    </div>
+                  </div>
 
                   <div className="mt-6 text-center text-sm">
                     <span className="text-muted-foreground">Don’t have an account? </span>

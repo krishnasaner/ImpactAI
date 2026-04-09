@@ -91,19 +91,19 @@ const CrisisResourcesCompact: React.FC = () => (
         variant="outline"
         size="sm"
         className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300"
-        onClick={() => window.open('tel:988', '_self')}
+        onClick={() => window.open('tel:14416', '_self')}
       >
         <Phone className="h-3 w-3 mr-1" />
-        988
+        14416
       </Button>
       <Button
         variant="outline"
         size="sm"
         className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300"
-        onClick={() => window.open('sms:741741', '_self')}
+        onClick={() => window.open('tel:+912227546669', '_self')}
       >
         <MessageCircle className="h-3 w-3 mr-1" />
-        741741
+        AASRA
       </Button>
       <Button
         variant="outline"
@@ -583,13 +583,13 @@ export const MaintenanceFallback: React.FC<FallbackProps & {
                 </p>
                 <div className="space-y-2">
                   <div className="text-sm">
-                    <strong>Crisis Line:</strong> Call 988 (24/7)
+                    <strong>Tele-MANAS:</strong> Call 14416 or 1-800-89-14416
                   </div>
                   <div className="text-sm">
-                    <strong>Text Support:</strong> Text HOME to 741741
+                    <strong>AASRA:</strong> Call +91 22 2754 6669
                   </div>
                   <div className="text-sm">
-                    <strong>Emergency:</strong> Call 911
+                    <strong>Emergency:</strong> Call 112
                   </div>
                 </div>
               </div>

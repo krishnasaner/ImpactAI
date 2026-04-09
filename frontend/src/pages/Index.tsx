@@ -109,7 +109,7 @@ const Index = () => {
     {
       question: 'What if I am having a mental health emergency?',
       answer:
-        "If in immediate danger, please call 911. Impact AI provides immediate crisis resources and 24/7 crisis chat support.",
+        'If you are in immediate danger, call 112. For mental health support in India, you can call Tele-MANAS at 14416 or use the in-app crisis resources.',
     },
   ];
 
@@ -124,9 +124,9 @@ const Index = () => {
     <PageTransition>
       {/* ── Landing Header ── */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 dark:bg-gray-950/95 dark:border-gray-800">
-        <div className="container flex h-20 items-center justify-between px-6 mx-auto">
+        <div className="container flex h-24 items-center justify-between px-6 mx-auto">
           <Link to="/" className="flex items-center shrink-0 hover:opacity-80 transition-opacity">
-            <img src="/ImpactAI_logo.png" alt="Impact AI" className="h-12 md:h-14 w-auto object-contain" />
+            <img src="/ImpactAI_logo.png" alt="Impact AI" className="h-16 md:h-20 w-auto object-contain drop-shadow-sm" />
           </Link>
           <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-500">
             <Link to="/about" className="hover:text-blue-600 transition-colors">About</Link>
@@ -156,6 +156,11 @@ const Index = () => {
           </div>
 
           <div className="relative z-10 container mx-auto px-6 text-center">
+            <div className="mb-8 flex justify-center">
+              <div className="rounded-[2rem] border border-blue-100 bg-white/90 px-6 py-4 shadow-xl shadow-blue-100/40 backdrop-blur dark:border-gray-800 dark:bg-gray-950/90 dark:shadow-blue-950/20">
+                <img src="/ImpactAI_logo.png" alt="Impact AI" className="h-24 md:h-28 w-auto object-contain" />
+              </div>
+            </div>
             {/* Trust badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 text-sm font-medium mb-8 dark:bg-blue-950/40 dark:text-blue-400">
               <Sparkles className="h-4 w-4" />
