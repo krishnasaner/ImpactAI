@@ -55,18 +55,22 @@ const Login = () => {
   setIsLoading(true);
 
   try {
-    const res = await axios.post('http://localhost:5000/auth/login', credentials, { withCredentials: true });
+    const res = await axios.post(`http://${window.location.hostname}:5000/auth/login`, credentials, { withCredentials: true });
     const user = res.data.user;
 
     if (user) {
       handleLoginSuccess({
         name: user.name,
         role: user.role,
-        token: user.token,
+        token: res.data.token,
       });
 
       toast.success('Logged in successfully!');
-      navigate('/'); // redirect after login
+      if (user.role === 'admin' || user.role === 'counselor') {
+        navigate('/app/admin-dashboard');
+      } else {
+        navigate('/app/student-dashboard');
+      }
     } else {
       toast.error('Login failed. Please check your credentials.');
     }

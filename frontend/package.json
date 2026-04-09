@@ -13,7 +13,7 @@
     "shadcn",
     "open-source"
   ],
-  "author": "Abhishek Kumar Giri",
+  "author": "Krishna Saner",
   "license": "MIT",
   "engines": {
     "node": ">=20.19.0",
@@ -21,12 +21,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/AbhishekChamp879/MInd_Care.git"
+    "url": "https://github.com/krishnasaner/ImpactAI.git"
   },
   "bugs": {
-    "url": "https://github.com/AbhishekChamp879/MInd_Care/issues"
+    "url": "https://github.com/krishnasaner/ImpactAI/issues"
   },
-  "homepage": "https://github.com/AbhishekChamp879/MInd_Care#readme",
+  "homepage": "https://github.com/krishnasaner/ImpactAI#readme",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

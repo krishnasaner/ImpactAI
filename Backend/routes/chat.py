@@ -1,49 +1,115 @@
-from datetime import datetime
+"""
+ImpactAI — Chat route.
+
+POST /chat  →  sends the user message to Groq Cloud AI,
+runs the ML severity model for a second opinion, persists
+the conversation turn in SQLite, and returns the response.
+"""
+
+import json
+from datetime import datetime, timezone
 from uuid import uuid4
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.orm import Session
 
-from database import chat_collection
+from database import get_db, ChatSessionRow, UserRow
 from routes.auth import _resolve_current_user
 from schemas import ChatRequest, ChatResponse
-from services.openai_client import generate_ai_chat
+from services.groq_client import generate_ai_chat
+from services.ml_model import predict_severity, is_model_available
 
 chat_router = APIRouter()
 
 
-def _get_optional_user(request: Request) -> Optional[dict]:
+def _get_optional_user(request: Request, db: Session) -> Optional[UserRow]:
     try:
-        return _resolve_current_user(request)
+        return _resolve_current_user(request, db)
     except HTTPException:
         return None
 
 
 @chat_router.post("/chat", response_model=ChatResponse)
-async def create_chat(request: ChatRequest, http_request: Request):
-    user_doc = _get_optional_user(http_request)
-    if not request.message.strip():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Message text cannot be empty.")
+async def create_chat(
+    request: ChatRequest,
+    http_request: Request,
+    db: Session = Depends(get_db),
+):
+    user = _get_optional_user(http_request, db)
 
+    if not request.message.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Message text cannot be empty.",
+        )
+
+    # ── 1. Groq AI response ────────────────────────────────────────────────
     ai_payload = generate_ai_chat(request.message)
+
+    # ── 2. ML severity prediction (second opinion) ─────────────────────────
+    ml_severity: Optional[str] = None
+    ml_confidence: Optional[float] = None
+    if is_model_available():
+        ml_severity, ml_confidence = predict_severity(request.message)
+
+    # ── 3. Persist to SQLite ───────────────────────────────────────────────
     session_id = request.session_id or str(uuid4())
-    chat_record = {
-        "session_id": session_id,
-        "user_id": str(user_doc["_id"]) if user_doc else None,
-        "user_role": user_doc.get("role") if user_doc else "anonymous",
-        "request_message": request.message,
-        "response_text": ai_payload["text"],
-        "severity": ai_payload["severity"],
-        "suggestions": ai_payload["suggestions"],
-        "created_at": datetime.utcnow(),
-    }
-    chat_collection.insert_one(chat_record)
+    chat_record = ChatSessionRow(
+        session_id=session_id,
+        user_id=user.id if user else None,
+        user_role=user.role if user else "anonymous",
+        request_message=request.message,
+        response_text=ai_payload["text"],
+        severity=ai_payload["severity"],
+        suggestions=json.dumps(ai_payload["suggestions"]),
+        ml_severity=ml_severity,
+        ml_confidence=ml_confidence,
+        created_at=datetime.now(timezone.utc),
+    )
+    db.add(chat_record)
+    db.commit()
+    db.refresh(chat_record)
 
     return ChatResponse(
-        id=str(uuid4()),
+        id=str(chat_record.id),
         text=ai_payload["text"],
         severity=ai_payload["severity"],
         suggestions=ai_payload["suggestions"],
         session_id=session_id,
-        created_at=datetime.utcnow(),
+        ml_severity=ml_severity,
+        ml_confidence=ml_confidence,
+        created_at=chat_record.created_at,
     )
+
+
+@chat_router.get("/chat/history")
+def chat_history(
+    session_id: Optional[str] = None,
+    limit: int = 50,
+    http_request: Request = None,
+    db: Session = Depends(get_db),
+):
+    """Return recent chat messages (optionally filtered by session)."""
+    query = db.query(ChatSessionRow)
+    if session_id:
+        query = query.filter(ChatSessionRow.session_id == session_id)
+    records = (
+        query.order_by(ChatSessionRow.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    items = []
+    for r in reversed(records):
+        items.append({
+            "id": r.id,
+            "session_id": r.session_id,
+            "request_message": r.request_message,
+            "response_text": r.response_text,
+            "severity": r.severity,
+            "suggestions": json.loads(r.suggestions) if r.suggestions else [],
+            "ml_severity": r.ml_severity,
+            "ml_confidence": r.ml_confidence,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        })
+    return {"messages": items, "count": len(items)}

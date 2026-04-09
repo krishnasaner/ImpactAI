@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import ReadingModeButton from '@/components/ui/reading-mode-button';
 import ScrollFadeIn from '@/components/ui/ScrollFadeIn';
+import PageTransition from '@/components/ui/PageTransition';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
   BookOpen,
@@ -40,8 +41,6 @@ import {
   Bookmark,
   Share2,
 } from 'lucide-react';
-import PageTransition from '@/components/ui/PageTransition';
-import ScrollFadeIn from '@/components/ui/ScrollFadeIn';
 
 // Enhanced language support
 const languages = {
@@ -696,39 +695,6 @@ const Resources = () => {
         </CardContent>
       </Card>
 
-      {/* Results Summary */}
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground">
-          Showing {filteredResources.length} of {mockResources.length} resources
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            // Generate a comprehensive PDF with all resources
-            const resourceList = filteredResources
-              .map(
-                (r) =>
-                  `${r.title}\n${r.description}\nType: ${r.type} | Duration: ${r.duration} | Language: ${r.language}\nAuthor: ${r.author || 'N/A'}\nURL: ${r.url || 'N/A'}\n---\n`
-              )
-              .join('\n');
-
-            const blob = new Blob([`Mind Buddy Resources Collection\n\n${resourceList}`], {
-              type: 'text/plain',
-            });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'mind-buddy-resources.txt';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
-          }}
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Export Resources
-        </Button>
-      </div>
       </ScrollFadeIn>
 
         {/* Results Summary */}

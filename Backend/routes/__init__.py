@@ -1,0 +1,1 @@
+"""ImpactAI routes package."""

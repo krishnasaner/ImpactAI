@@ -1,24 +1,32 @@
+"""
+ImpactAI — Request / Response schemas (Pydantic v2).
+
+These are the shapes that the FastAPI routes accept and return.
+"""
+
 from datetime import datetime
 from typing import List, Optional, Literal
 
 from pydantic import BaseModel, EmailStr
 
 
+# ═══════════════════════════════ Auth ══════════════════════════════════════════
+
 class SignupRequest(BaseModel):
     email: EmailStr
     password: str
-    role: Literal["student", "counselor", "admin"]
+    role: Literal["student", "counselor", "admin"] = "student"
     name: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
-    role: Literal["student", "counselor", "admin"]
+    role: Literal["student", "counselor", "admin"] = "student"
 
 
 class UserResponse(BaseModel):
-    id: str
+    id: int
     email: EmailStr
     role: str
     name: Optional[str] = None
@@ -28,6 +36,8 @@ class AuthResponse(BaseModel):
     user: UserResponse
     token: str
 
+
+# ═══════════════════════════════ Chat ═════════════════════════════════════════
 
 class ChatRequest(BaseModel):
     message: str
@@ -40,8 +50,12 @@ class ChatResponse(BaseModel):
     severity: Literal["low", "medium", "high", "crisis"]
     suggestions: List[str]
     session_id: str
+    ml_severity: Optional[str] = None
+    ml_confidence: Optional[float] = None
     created_at: datetime
 
+
+# ═══════════════════════════════ Analytics ════════════════════════════════════
 
 class AnalyticsSummary(BaseModel):
     row_count: int
@@ -49,3 +63,25 @@ class AnalyticsSummary(BaseModel):
     average_response_tokens: float
     context_length_distribution: dict
     response_length_distribution: dict
+
+
+# ═══════════════════════════════ Mood ═════════════════════════════════════════
+
+class MoodRequest(BaseModel):
+    mood: str
+    note: Optional[str] = None
+
+
+class MoodResponse(BaseModel):
+    id: int
+    mood: str
+    note: Optional[str] = None
+    created_at: datetime
+
+
+# ═══════════════════════════════ ML ═══════════════════════════════════════════
+
+class SeverityPrediction(BaseModel):
+    text: str
+    predicted_severity: str
+    confidence: float

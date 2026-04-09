@@ -51,20 +51,35 @@ const Signup = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/auth/signup', {
+      const res = await fetch(`http://${window.location.hostname}:5000/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
         credentials: 'include', // to accept cookies if JWT is set as httpOnly
       });
 
-      if (!res.ok) throw new Error('Signup failed');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || 'Signup failed');
+      }
+
+      const data = await res.json();
+      const user = data.user;
+      
+      localStorage.setItem('userName', user.name || user.email);
+      localStorage.setItem('userRole', user.role);
+      localStorage.setItem('token', data.token);
 
       toast.success('Account created successfully!');
-      navigate('/');
-    } catch (err) {
+      
+      if (user.role === 'admin' || user.role === 'counselor') {
+        navigate('/app/admin-dashboard');
+      } else {
+        navigate('/app/student-dashboard');
+      }
+    } catch (err: any) {
       console.error(err);
-      toast.error('Signup failed. Please check your credentials.');
+      toast.error(err.message || 'Signup failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
