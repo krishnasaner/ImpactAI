@@ -199,7 +199,7 @@ class ErrorReportingService {
   constructor(config: Partial<ErrorReportingConfig> = {}) {
     this.config = {
       enableReporting: true,
-      enableConsoleLogging: process.env.NODE_ENV === 'development',
+      enableConsoleLogging: import.meta.env.DEV,
       maxReportsPerSession: 50,
       privacyMode: true,
       crisisDetectionEnabled: true,

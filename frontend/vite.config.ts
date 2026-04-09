@@ -4,6 +4,7 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: '/',
   server: {
     host: '::',
     port: 8080,
@@ -24,43 +25,42 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor libraries
-          if (id.includes('node_modules')) {
-            // React core
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
+          if (!id.includes('node_modules')) {
+            if (id.includes('/pages/admin-Dashboard.tsx')) {
+              return 'dashboard';
             }
-            // UI libraries
+            if (id.includes('/pages/') && (id.includes('StudentDashboard') || id.includes('Booking'))) {
+              return 'heavy-pages';
+            }
+            return;
+          }
+
+          // Keep React in the default vendor graph to avoid circular chunk references.
+          if (id.includes('react') || id.includes('react-dom')) {
+            return 'vendor';
+          }
+
+          // UI libraries
             if (id.includes('@radix-ui')) {
               return 'radix-ui';
             }
-            // Router and state management
-            if (id.includes('react-router') || id.includes('@tanstack/react-query')) {
-              return 'router-query';
-            }
-            // Charts and animations
-            if (id.includes('recharts') || id.includes('framer-motion')) {
-              return 'charts-animations';
-            }
-            // Utilities and smaller libraries
-            if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
-              return 'utilities';
-            }
-            // Icons
-            if (id.includes('lucide-react')) {
-              return 'icons';
-            }
-            // Other vendor libraries
-            return 'vendor';
+
+          // Router and state management
+          if (id.includes('react-router') || id.includes('@tanstack/react-query')) {
+            return 'router-query';
           }
-          
-          // App code chunking
-          if (id.includes('/pages/admin-Dashboard.tsx')) {
-            return 'dashboard';
+
+          // Charts and animations
+          if (id.includes('recharts') || id.includes('framer-motion')) {
+            return 'charts-animations';
           }
-          if (id.includes('/pages/') && (id.includes('StudentDashboard') || id.includes('Booking'))) {
-            return 'heavy-pages';
+
+          // Utilities and smaller libraries
+          if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
+            return 'utilities';
           }
+
+          return 'vendor';
         },
       },
     },

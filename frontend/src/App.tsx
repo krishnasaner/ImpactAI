@@ -44,89 +44,91 @@ const MentalHealthBlog = React.lazy(() => import('./pages/MentalHealthBlog'));
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <MusicProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="colored"
-                aria-label="Toast notifications"
-              />
-              <Sonner />
-              <BrowserRouter>
-                <React.Suspense
-                  fallback={
-                    <div className="flex items-center justify-center min-h-screen">
-                      <div className="space-y-4 text-center">
-                        <div className="animate-pulse">
-                          <div className="w-8 h-8 bg-primary/20 rounded-full mx-auto mb-2" />
-                          <div className="text-muted-foreground">Loading Impact AI...</div>
+  <ErrorBoundary componentName="AppRoot" variant="page">
+    <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <MusicProvider>
+            <AuthProvider>
+              <TooltipProvider>
+                <ToastContainer
+                  position="top-right"
+                  autoClose={3000}
+                  hideProgressBar={false}
+                  newestOnTop={false}
+                  closeOnClick
+                  rtl={false}
+                  pauseOnFocusLoss
+                  draggable
+                  pauseOnHover
+                  theme="colored"
+                  aria-label="Toast notifications"
+                />
+                <Sonner />
+                <BrowserRouter>
+                  <React.Suspense
+                    fallback={
+                      <div className="flex items-center justify-center min-h-screen">
+                        <div className="space-y-4 text-center">
+                          <div className="animate-pulse">
+                            <div className="w-8 h-8 bg-primary/20 rounded-full mx-auto mb-2" />
+                            <div className="text-muted-foreground">Loading Impact AI...</div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  }
-                >
-                  <Routes>
-                    <Route path="/about" element={<About />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/select-institution" element={<InstitutionSelection />} />
-                    <Route path="/" element={<Index />} />
-                    <Route path="/contact" element={<ContactUs />} />
-                    <Route path="*" element={<NotFound />} />
-                    <Route path="/signup" element={<Signup />} />
-
-                    {/* Protected Routes */}
-                    <Route
-                      path="/app"
-                      element={
-                        <ProtectedRoute>
-                          <Layout />
-                        </ProtectedRoute>
-                      }
-                    >
-                      <Route index element={<Dashboard />} />
-                      <Route path="admin-dashboard" element={<Dashboard />} />
-                      <Route path="student-dashboard" element={<StudentDashboard />} />
-                      <Route path="resources" element={<Resources />} />
-                      <Route path="forum" element={<Forum />} />
-                      <Route path="blog" element={<MentalHealthBlog />} />
-                      <Route path="booking" element={<Booking />} />
-                      <Route path="profile" element={<Profile />} />
-                      <Route path="sessions" element={<Sessions />} />
-                      <Route path="breathing" element={<BreathingExercises />} />
-                      <Route path="notifications" element={<NotificationSettings />} />
-                      <Route path="theme-settings" element={<EnhancedThemeSettings />} />
-                      <Route path="mood-showcase" element={<QuickMoodShowcase />} />
-                      <Route path="feedback-demo" element={<FeedbackDemo />} />
-                      <Route path="system" element={<SystemHealth />} />
-                      <Route path="users" element={<UserManagement />} />
-                      <Route path="moderation" element={<ContentModeration />} />
-                      <Route path="chat" element={<AIChat />} />
-
+                    }
+                  >
+                    <Routes>
+                      <Route path="/about" element={<About />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/select-institution" element={<InstitutionSelection />} />
+                      <Route path="/" element={<Index />} />
+                      <Route path="/contact" element={<ContactUs />} />
                       <Route path="*" element={<NotFound />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    </Route>
-                  </Routes>
-                </React.Suspense>
-                <ChatWidget />
-                <NotificationContainer />
-                <ScrollToTop />
-              </BrowserRouter>
-            </TooltipProvider>
-          </AuthProvider>
-        </MusicProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+                      <Route path="/signup" element={<Signup />} />
+
+                      {/* Protected Routes */}
+                      <Route
+                        path="/app"
+                        element={
+                          <ProtectedRoute>
+                            <Layout />
+                          </ProtectedRoute>
+                        }
+                      >
+                        <Route index element={<Dashboard />} />
+                        <Route path="admin-dashboard" element={<Dashboard />} />
+                        <Route path="student-dashboard" element={<StudentDashboard />} />
+                        <Route path="resources" element={<Resources />} />
+                        <Route path="forum" element={<Forum />} />
+                        <Route path="blog" element={<MentalHealthBlog />} />
+                        <Route path="booking" element={<Booking />} />
+                        <Route path="profile" element={<Profile />} />
+                        <Route path="sessions" element={<Sessions />} />
+                        <Route path="breathing" element={<BreathingExercises />} />
+                        <Route path="notifications" element={<NotificationSettings />} />
+                        <Route path="theme-settings" element={<EnhancedThemeSettings />} />
+                        <Route path="mood-showcase" element={<QuickMoodShowcase />} />
+                        <Route path="feedback-demo" element={<FeedbackDemo />} />
+                        <Route path="system" element={<SystemHealth />} />
+                        <Route path="users" element={<UserManagement />} />
+                        <Route path="moderation" element={<ContentModeration />} />
+                        <Route path="chat" element={<AIChat />} />
+
+                        <Route path="*" element={<NotFound />} />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      </Route>
+                    </Routes>
+                  </React.Suspense>
+                  <ChatWidget />
+                  <NotificationContainer />
+                  <ScrollToTop />
+                </BrowserRouter>
+              </TooltipProvider>
+            </AuthProvider>
+          </MusicProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

@@ -29,7 +29,7 @@ class Logger {
   private maxHistorySize = 1000;
 
   private constructor() {
-    this.isDevelopment = process.env.NODE_ENV === 'development';
+    this.isDevelopment = import.meta.env.DEV;
     this.logLevel = this.isDevelopment ? LogLevel.DEBUG : LogLevel.WARN;
   }
 
