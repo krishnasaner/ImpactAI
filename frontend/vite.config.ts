@@ -55,7 +55,7 @@ export default defineConfig(({ mode }) => ({
           }
           
           // App code chunking
-          if (id.includes('/pages/Dashboard.tsx')) {
+          if (id.includes('/pages/admin-Dashboard.tsx')) {
             return 'dashboard';
           }
           if (id.includes('/pages/') && (id.includes('StudentDashboard') || id.includes('Booking'))) {
