@@ -112,6 +112,10 @@ def main():
 
     df["text"] = df["Context"].astype(str) + " " + df["Response"].astype(str)
     df["text"] = df["text"].str.strip()
+    
+    # Handle missing values
+    df = df.dropna(subset=["text"])
+    df = df[df["text"].str.len() > 0]
 
     print("[2/6] Assigning severity labels (keyword heuristics) ...")
     df["severity"] = df["text"].apply(assign_severity)
