@@ -3,6 +3,7 @@ uvicorn[standard]
 python-dotenv
 sqlalchemy
 passlib[bcrypt]
+bcrypt
 python-jose[cryptography]
 groq
 pandas

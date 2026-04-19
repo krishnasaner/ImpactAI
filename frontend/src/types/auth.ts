@@ -1,5 +1,3 @@
-import bcrypt from 'bcryptjs';
-
 export interface User {
   id: string;
   name: string;
@@ -40,16 +38,13 @@ export interface UserWithPassword {
   user: User;
 }
 
-// Helper function to hash passwords with bcrypt
-const hashPassword = (password: string): string => {
-  const saltRounds = 10; // Cost factor - higher = more secure but slower
-  return bcrypt.hashSync(password, saltRounds);
-};
-
-// Mock users with SECURELY HASHED passwords using bcrypt
+// Mock users with plain-text passwords for demo purposes.
+// Actual password verification is handled by the backend (bcrypt on the server).
+// These are ONLY used to pre-fill demo credentials in the login form — they are
+// never used for client-side authentication.
 export const mockUsers: Record<string, UserWithPassword> = {
   'student@impactai.com': {
-    password: hashPassword('student123'), 
+    password: 'student123',
     user: {
       id: '1',
       name: 'Alex Student',
@@ -71,7 +66,7 @@ export const mockUsers: Record<string, UserWithPassword> = {
     },
   },
   'counselor@impactai.com': {
-    password: hashPassword('counselor123'), 
+    password: 'counselor123',
     user: {
       id: '2',
       name: 'Dr. Sarah Wilson',
@@ -97,7 +92,7 @@ export const mockUsers: Record<string, UserWithPassword> = {
     },
   },
   'admin@impactai.com': {
-    password: hashPassword('admin123'), 
+    password: 'admin123',
     user: {
       id: '3',
       name: 'Admin User',

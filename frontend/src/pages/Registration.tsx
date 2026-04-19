@@ -10,8 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'react-toastify';
 import PageTransition from '@/components/ui/PageTransition';
 import ScrollFadeIn from '@/components/ui/ScrollFadeIn';
-import CryptoJS from 'crypto-js';
-import * as bcrypt from 'bcryptjs';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface RegisterFormData {
   name: string;
@@ -29,42 +28,9 @@ interface RegisterFormData {
   department?: string;
 }
 
-// Password database storage (bcrypt-hashed passwords, stored directly)
-// This is secure because bcrypt hashes are cryptographically irreversible
-const passwordStorage = {
-  setItem: (key: string, value: any): void => {
-    sessionStorage.setItem(key, JSON.stringify(value));
-  },
-
-  getItem: (key: string): any | null => {
-    const data = sessionStorage.getItem(key);
-    if (!data) return null;
-
-    try {
-      return JSON.parse(data);
-    } catch (error) {
-      console.error('Parse failed:', error);
-      return null;
-    }
-  },
-};
-
-// Bcrypt password hashing (high computational cost)
-const hashPassword = (password: string): string => {
-  const saltRounds = 10;
-  return bcrypt.hashSync(password, saltRounds);
-};
-
-// Generate cryptographically secure random ID
-const generateSecureId = (): string => {
-  const timestamp = Date.now();
-  const randomBytes = CryptoJS.lib.WordArray.random(16);
-  const randomString = randomBytes.toString(CryptoJS.enc.Hex);
-  return `user_${timestamp}_${randomString}`;
-};
-
 const Register = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -128,72 +94,43 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+      const res = await fetch(`${API_BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+          name: formData.name,
+        }),
+        credentials: 'include',
+      });
 
-      // Get existing users from password storage
-      const existingUsers = passwordStorage.getItem('impactai_users_db') || {};
-
-      if (existingUsers[formData.email]) {
-        setError('An account with this email already exists');
-        setIsLoading(false);
-        return;
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || 'Registration failed');
       }
 
-      const userId = generateSecureId();
+      const data = await res.json();
+      const user = data.user;
 
-      // Create user profile (NO password field)
-      const newUser = {
-        id: userId,
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        avatar: '/api/placeholder/150/150',
-        phone: '',
-        dateOfBirth: formData.dateOfBirth || '',
-        emergencyContact: '',
-        emergencyPhone: '',
-        preferredLanguage: 'English',
-        timezone: 'Asia/Kolkata',
-        joinDate: new Date().toISOString(),
-        lastActive: new Date().toISOString(),
-      };
+      login({
+        id: String(user.id),
+        name: user.name || formData.name,
+        email: user.email || formData.email,
+        role: user.role,
+      }, { token: data.token });
 
-      if (formData.role === 'student') {
-        Object.assign(newUser, {
-          university: formData.university || '',
-          major: formData.major || '',
-          year: formData.year || '',
-          studentId: `STU-${Date.now()}`,
-        });
-      } else if (formData.role === 'counselor') {
-        Object.assign(newUser, {
-          license: formData.license || '',
-          specialization: formData.specialization ? formData.specialization.split(',').map(s => s.trim()) : [],
-          experience: formData.experience || '',
-        });
-      } else if (formData.role === 'admin') {
-        Object.assign(newUser, {
-          department: formData.department || '',
-          permissions: ['user_management', 'system_settings', 'analytics_view'],
-        });
-      }
+      toast.success('Registration successful!');
+      const dashRoute = formData.role === 'admin' || formData.role === 'counselor'
+        ? '/app/admin-dashboard'
+        : '/app/student-dashboard';
+      navigate(dashRoute);
 
-      // Store with bcrypt-hashed password in password storage
-      // This keeps password data separate from AES encryption flow
-      existingUsers[formData.email] = {
-        password: hashPassword(formData.password),
-        user: newUser,
-      };
-
-      passwordStorage.setItem('impactai_users_db', existingUsers);
-
-      toast.success('Registration successful! Please login.');
-      setTimeout(() => {
-        navigate('/login');
-      }, 1500);
-
-    } catch (err) {
-      setError('Registration failed. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

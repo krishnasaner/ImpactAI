@@ -6,12 +6,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from jose import jwt, JWTError
-from passlib.context import CryptContext
 from fastapi import Request
+import bcrypt
 
 from config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS
-
-import bcrypt
 
 # ── Password helpers ───────────────────────────────────────────────────────────
 

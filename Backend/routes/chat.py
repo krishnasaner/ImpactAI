@@ -1,9 +1,9 @@
 """
 ImpactAI — Chat route.
 
-POST /chat  →  sends the user message to Groq Cloud AI,
-runs the ML severity model for a second opinion, persists
-the conversation turn in SQLite, and returns the response.
+POST /chat  →  sends the user message (with session history) to Groq Cloud AI,
+runs the ML severity model for a second opinion, persists the conversation
+turn in SQLite, and returns the response.
 """
 
 import json
@@ -22,12 +22,40 @@ from services.ml_model import predict_severity, is_model_available
 
 chat_router = APIRouter()
 
+# Maximum number of past turns to include as context (to keep token count sane)
+_MAX_HISTORY_TURNS = 10
+
 
 def _get_optional_user(request: Request, db: Session) -> Optional[UserRow]:
     try:
         return _resolve_current_user(request, db)
     except HTTPException:
         return None
+
+
+def _build_conversation_history(db: Session, session_id: str) -> list[dict]:
+    """
+    Retrieve the last N conversation turns for this session so the AI
+    can maintain context across messages.
+    """
+    records = (
+        db.query(ChatSessionRow)
+        .filter(ChatSessionRow.session_id == session_id)
+        .order_by(ChatSessionRow.created_at.desc())
+        .limit(_MAX_HISTORY_TURNS)
+        .all()
+    )
+
+    history = []
+    for r in reversed(records):
+        history.append({"role": "user", "content": r.request_message})
+        history.append({"role": "assistant", "content": json.dumps({
+            "text": r.response_text,
+            "severity": r.severity,
+            "suggestions": json.loads(r.suggestions) if r.suggestions else [],
+        })})
+
+    return history
 
 
 @chat_router.post("/chat", response_model=ChatResponse)
@@ -44,17 +72,22 @@ async def create_chat(
             detail="Message text cannot be empty.",
         )
 
-    # ── 1. Groq AI response ────────────────────────────────────────────────
-    ai_payload = generate_ai_chat(request.message)
+    # ── 0. Resolve or create session ───────────────────────────────────────
+    session_id = request.session_id or str(uuid4())
 
-    # ── 2. ML severity prediction (second opinion) ─────────────────────────
+    # ── 1. Build conversation history for context ──────────────────────────
+    history = _build_conversation_history(db, session_id)
+
+    # ── 2. Groq AI response (with history) ─────────────────────────────────
+    ai_payload = generate_ai_chat(request.message, history=history)
+
+    # ── 3. ML severity prediction (second opinion) ─────────────────────────
     ml_severity: Optional[str] = None
     ml_confidence: Optional[float] = None
     if is_model_available():
         ml_severity, ml_confidence = predict_severity(request.message)
 
-    # ── 3. Persist to SQLite ───────────────────────────────────────────────
-    session_id = request.session_id or str(uuid4())
+    # ── 4. Persist to SQLite ───────────────────────────────────────────────
     chat_record = ChatSessionRow(
         session_id=session_id,
         user_id=user.id if user else None,

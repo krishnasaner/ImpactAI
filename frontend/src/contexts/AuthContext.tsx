@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState, ReactNode } from 'react';
 import type { User } from '@/types/auth';
 
 interface AuthState {
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   });
 
-  const login = (userData: User | null, options?: LoginOptions) => {
+  const login = useCallback((userData: User | null, options?: LoginOptions) => {
     if (!userData) {
       return;
     }
@@ -152,9 +152,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       user: nextUser,
       isAuthenticated: true,
     });
-  };
+  }, []);
 
-  const updateUser = (userData: Partial<User>) => {
+  const updateUser = useCallback((userData: Partial<User>) => {
     setAuthState((currentState) => {
       if (!currentState.user) {
         return currentState;
@@ -169,16 +169,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         user: updatedUser,
       };
     });
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     clearStoredAuth();
 
     setAuthState({
       user: null,
       isAuthenticated: false,
     });
-  };
+  }, []);
 
   const value = useMemo(
     () => ({ ...authState, login, updateUser, logout }),

@@ -633,9 +633,8 @@ const ChatWidget = () => {
   const [currentSeverity, setCurrentSeverity] = useState<
     'low' | 'medium' | 'high' | 'crisis' | null
   >(null);
-  const [conversationHistory, setConversationHistory] = useState<
-    Array<{ message: string; severity: string; timestamp: Date }>
-  >([]);
+  const [conversationSessionId, setConversationSessionId] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
 
 
   const messagesRef = useRef<HTMLDivElement | null>(null);
@@ -1009,7 +1008,7 @@ const ChatWidget = () => {
 
     return { content: response, actions };
   };
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
     const userMessage: Message = {
@@ -1020,38 +1019,11 @@ const ChatWidget = () => {
       language: selectedLanguage,
     };
 
-    if (isOnline) {
-      setMessages((prev) => [...prev, userMessage]);
-      setInputMessage('');
-
-      // Analyze message for intelligent response
-      setTimeout(() => {
-        const analysis = analyzeMessage(inputMessage, selectedLanguage);
-        setCurrentSeverity(analysis.severity);
-
-        const aiResponse = getContextualResponse(analysis, selectedLanguage);
-
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'ai',
-          content: aiResponse.content,
-          timestamp: new Date(),
-          severity: analysis.severity,
-          language: selectedLanguage,
-          actions: aiResponse.actions,
-          confidence: analysis.confidence,
-          triggers: analysis.triggers,
-          riskFactors: analysis.riskFactors,
-        };
-
-        setMessages((prev) => [...prev, aiMessage]);
-      }, 1000);
-    } else {
+    if (!isOnline) {
       // Store message offline
       setOfflineMessages((prev) => [...prev, userMessage]);
       setInputMessage('');
 
-      // Show offline message
       const offlineMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
@@ -1061,6 +1033,93 @@ const ChatWidget = () => {
         language: selectedLanguage,
       };
       setMessages((prev) => [...prev, userMessage, offlineMessage]);
+      return;
+    }
+
+    setMessages((prev) => [...prev, userMessage]);
+    const messageText = inputMessage;
+    setInputMessage('');
+    setIsTyping(true);
+
+    try {
+      const API_BASE_URL =
+        (import.meta as any).env?.VITE_API_URL || `http://${window.location.hostname}:5000`;
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          message: messageText,
+          session_id: conversationSessionId,
+        }),
+        credentials: 'include',
+      });
+
+      if (!res.ok) throw new Error('AI service unavailable');
+
+      const data = await res.json();
+
+      if (data.session_id && !conversationSessionId) {
+        setConversationSessionId(data.session_id);
+      }
+
+      const severity = data.severity || 'low';
+      setCurrentSeverity(severity);
+
+      // Build action buttons based on severity
+      let actions: Message['actions'] = [];
+      if (severity === 'crisis') {
+        actions = [
+          { type: 'emergency', label: 'Emergency Helpline', urgent: true },
+          { type: 'counselor', label: 'Immediate Counselor', urgent: true },
+          { type: 'resources', label: 'Crisis Resources' },
+        ];
+      } else if (severity === 'high') {
+        actions = [
+          { type: 'counselor', label: 'Book Counselor' },
+          { type: 'resources', label: 'Support Resources' },
+          { type: 'emergency', label: 'Crisis Helpline' },
+        ];
+      } else if (severity === 'medium') {
+        actions = [
+          { type: 'resources', label: 'Coping Resources' },
+          { type: 'counselor', label: 'Schedule Session' },
+        ];
+      }
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: data.text || "I'm here — could you tell me a bit more?",
+        timestamp: new Date(),
+        severity,
+        language: selectedLanguage,
+        actions,
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Chat API error:', error);
+      // Fallback: use local analysis if backend is unreachable
+      const analysis = analyzeMessage(messageText, selectedLanguage);
+      setCurrentSeverity(analysis.severity);
+      const fallbackResponse = getContextualResponse(analysis, selectedLanguage);
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: fallbackResponse.content,
+        timestamp: new Date(),
+        severity: analysis.severity,
+        language: selectedLanguage,
+        actions: fallbackResponse.actions,
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    } finally {
+      setIsTyping(false);
     }
   };
   const getSeverityColor = (severity: string) => {
@@ -1254,6 +1313,15 @@ const ChatWidget = () => {
                   </div>
                 </div>
               ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-muted rounded-lg px-3 py-2 flex items-center space-x-1.5">
+                    <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Input Area */}
@@ -1271,7 +1339,7 @@ const ChatWidget = () => {
                 onClick={handleSendMessage}
                 variant="default"
                 size="icon"
-                disabled={!inputMessage.trim()}
+                disabled={!inputMessage.trim() || isTyping}
                 aria-label="Send message"
               >
                 <Send className="h-4 w-4" />

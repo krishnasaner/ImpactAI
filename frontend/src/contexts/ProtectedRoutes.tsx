@@ -1,4 +1,4 @@
-import { useEffect, useState, ReactNode } from 'react';
+import { useEffect, useRef, useState, ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,20 +12,27 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
   const { login, logout, user: authUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ role: string } | null>(null);
+  // Prevent re-running the auth check when login/logout references change
+  const hasChecked = useRef(false);
 
   useEffect(() => {
+    // Skip if we already verified this session
+    if (hasChecked.current) return;
+
     const checkAuth = async () => {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
 
       if (authUser?.isAnonymous) {
         setUser({ role: authUser.role });
         setLoading(false);
+        hasChecked.current = true;
         return;
       }
 
       if (!token) {
         setUser(null);
         setLoading(false);
+        hasChecked.current = true;
         return;
       }
 
@@ -53,11 +60,14 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
         setUser(null);
       } finally {
         setLoading(false);
+        hasChecked.current = true;
       }
     };
 
     void checkAuth();
-  }, [authUser, login, logout]);
+    // Only depend on authUser — login/logout are stable identity functions
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) {
     return (
