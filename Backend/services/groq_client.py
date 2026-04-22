@@ -28,7 +28,7 @@ def _get_client() -> Groq:
                 "GROQ_API_KEY is not set.  "
                 "Add it to Backend/.env  →  GROQ_API_KEY=gsk_..."
             )
-        _client = Groq(api_key=GROQ_API_KEY)
+        _client = Groq(api_key=GROQ_API_KEY, timeout=30.0)
     return _client
 
 

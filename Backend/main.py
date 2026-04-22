@@ -6,11 +6,19 @@ Run with:
 """
 
 from datetime import datetime, timezone
+import logging
+
+# Configure logging so messages show in Render's log viewer
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger("impactai")
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import CORS_ORIGINS
+from config import CORS_ORIGINS, GROQ_API_KEY
 from database import init_db
 from routes.analytics import router as analytics_router
 from routes.auth import auth_router
@@ -56,7 +64,14 @@ def startup_event():
     init_db()
     # Pre‑load ML model at startup (if available)
     from services.ml_model import is_model_available
-    is_model_available()
+    ml_ok = is_model_available()
+
+    # Startup diagnostics
+    logger.info("=" * 60)
+    logger.info("ImpactAI Backend v2.0.0 starting")
+    logger.info("  GROQ_API_KEY: %s", "configured ✓" if GROQ_API_KEY else "⚠ MISSING — chat will fail")
+    logger.info("  ML Model:     %s", "loaded ✓" if ml_ok else "not available (optional)")
+    logger.info("=" * 60)
 
 
 # ── Health check ───────────────────────────────────────────────────────────────

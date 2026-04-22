@@ -53,7 +53,13 @@ const Login = () => {
       try {
         const API_BASE_URL =
           import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
-        const response = await axios.get(`${API_BASE_URL}/auth/google/status`);
+        // Short timeout — don't block the login page waiting for a cold-starting Render backend
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 5000);
+        const response = await axios.get(`${API_BASE_URL}/auth/google/status`, {
+          signal: controller.signal,
+        });
+        clearTimeout(timer);
         setIsGoogleEnabled(Boolean(response.data?.configured));
       } catch {
         setIsGoogleEnabled(false);

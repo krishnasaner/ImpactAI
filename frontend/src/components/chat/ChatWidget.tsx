@@ -635,9 +635,20 @@ const ChatWidget = () => {
   >(null);
   const [conversationSessionId, setConversationSessionId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const backendWarmed = useRef(false);
 
 
   const messagesRef = useRef<HTMLDivElement | null>(null);
+
+  // Pre-warm Render backend when chat opens (defeats cold start)
+  useEffect(() => {
+    if (isOpen && !backendWarmed.current) {
+      backendWarmed.current = true;
+      const API_BASE_URL =
+        (import.meta as any).env?.VITE_API_URL || `http://${window.location.hostname}:5000`;
+      fetch(`${API_BASE_URL}/health`, { method: 'GET' }).catch(() => {});
+    }
+  }, [isOpen]);
 
   // Action handlers for enhanced crisis intervention
   const handleAction = (action: {
@@ -1041,27 +1052,46 @@ const ChatWidget = () => {
     setInputMessage('');
     setIsTyping(true);
 
-    // Abort after 15 seconds to prevent hanging requests
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const API_BASE_URL =
+      (import.meta as any).env?.VITE_API_URL || `http://${window.location.hostname}:5000`;
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+
+    // Helper: single fetch attempt with configurable timeout
+    const attemptFetch = async (timeoutMs: number) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(`${API_BASE_URL}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            message: messageText,
+            session_id: conversationSessionId,
+          }),
+          credentials: 'include',
+          signal: controller.signal,
+        });
+        clearTimeout(timer);
+        return res;
+      } catch (err) {
+        clearTimeout(timer);
+        throw err;
+      }
+    };
 
     try {
-      const API_BASE_URL =
-        (import.meta as any).env?.VITE_API_URL || `http://${window.location.hostname}:5000`;
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          message: messageText,
-          session_id: conversationSessionId,
-        }),
-        credentials: 'include',
-        signal: controller.signal,
-      });
+      // First attempt: 45s timeout (allows Render cold start ~30-60s)
+      // If it fails, retry once with 20s (backend should be warm now)
+      let res: Response;
+      try {
+        res = await attemptFetch(45000);
+      } catch (firstErr) {
+        console.warn('Chat first attempt failed, retrying...', firstErr);
+        res = await attemptFetch(20000);
+      }
 
       if (!res.ok) {
         const errBody = await res.json().catch(() => null);
@@ -1114,7 +1144,7 @@ const ChatWidget = () => {
 
       const errorContent =
         error instanceof DOMException && error.name === 'AbortError'
-          ? 'The request timed out. Please check your connection and try again.'
+          ? 'The server is waking up — this can take up to a minute on the first request. Please try again.'
           : error instanceof Error && error.message
             ? `Sorry, I couldn't connect to the AI service: ${error.message}. I'll use offline support for now.`
             : 'Sorry, something went wrong. Let me try to help with what I know.';
@@ -1135,7 +1165,6 @@ const ChatWidget = () => {
       };
       setMessages((prev) => [...prev, aiMessage]);
     } finally {
-      clearTimeout(timeout);
       setIsTyping(false);
     }
   };

@@ -49,12 +49,16 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
       try {
         const API_BASE_URL =
           import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 10000);
         const res = await axios.get(`${API_BASE_URL}/api/auth/me`, {
           withCredentials: true,
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          signal: controller.signal,
         });
+        clearTimeout(timer);
 
         setUser(res.data.user);
         login({

@@ -21,6 +21,16 @@ const AIChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const backendWarmed = useRef(false);
+
+  // Pre-warm Render backend on mount (defeats cold start)
+  useEffect(() => {
+    if (!backendWarmed.current) {
+      backendWarmed.current = true;
+      const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+      fetch(`${API_BASE_URL}/health`, { method: 'GET' }).catch(() => {});
+    }
+  }, []);
 
   // Scroll to bottom on new messages
   const scrollToBottom = () => {
@@ -46,26 +56,45 @@ const AIChat = () => {
     setInputText('');
     setIsTyping(true);
 
-    // Abort after 15 seconds to prevent hanging requests
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+
+    // Helper: single fetch attempt with configurable timeout
+    const attemptFetch = async (timeoutMs: number) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(`${API_BASE_URL}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            message: messageText,
+            session_id: sessionId,
+          }),
+          credentials: 'include',
+          signal: controller.signal,
+        });
+        clearTimeout(timer);
+        return res;
+      } catch (err) {
+        clearTimeout(timer);
+        throw err;
+      }
+    };
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          message: messageText,
-          session_id: sessionId,
-        }),
-        credentials: 'include',
-        signal: controller.signal,
-      });
+      // First attempt: 45s (allows Render cold start ~30-60s)
+      // If it fails, retry once with 20s (backend should be warm now)
+      let res: Response;
+      try {
+        res = await attemptFetch(45000);
+      } catch (firstErr) {
+        console.warn('Chat first attempt failed, retrying...', firstErr);
+        res = await attemptFetch(20000);
+      }
 
       if (!res.ok) {
         const errBody = await res.json().catch(() => null);
@@ -93,7 +122,7 @@ const AIChat = () => {
 
       const errorText =
         error instanceof DOMException && error.name === 'AbortError'
-          ? 'The request timed out. Please check your connection and try again.'
+          ? 'The server is waking up — this can take up to a minute on the first request. Please try again.'
           : error instanceof Error
             ? `Unable to reach the AI service: ${error.message}`
             : 'Unable to connect to the AI backend. Please try again later.';
@@ -108,7 +137,6 @@ const AIChat = () => {
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      clearTimeout(timeout);
       setIsTyping(false);
     }
   };
