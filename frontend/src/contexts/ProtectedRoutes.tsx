@@ -29,6 +29,15 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
         return;
       }
 
+      // If AuthContext already has a valid user (e.g. just logged in),
+      // trust it and skip the redundant /me round-trip.
+      if (authUser && token) {
+        setUser({ role: authUser.role });
+        setLoading(false);
+        hasChecked.current = true;
+        return;
+      }
+
       if (!token) {
         setUser(null);
         setLoading(false);
@@ -36,6 +45,7 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
         return;
       }
 
+      // Token exists but no user in context (page refresh) — verify via /me
       try {
         const API_BASE_URL =
           import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;

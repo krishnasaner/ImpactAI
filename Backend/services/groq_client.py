@@ -8,7 +8,10 @@ like a warm, natural conversation, not a clinical template.
 """
 
 import json
+import logging
 from typing import Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 from groq import Groq
 
@@ -102,12 +105,20 @@ def generate_ai_chat(
         messages.extend(history)
     messages.append({"role": "user", "content": message})
 
-    chat_completion = client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=messages,
-        temperature=0.75,
-        max_tokens=512,
-    )
+    try:
+        chat_completion = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=messages,
+            temperature=0.75,
+            max_tokens=512,
+        )
+    except Exception as exc:
+        logger.error(
+            "Groq API request failed (model=%s): %s",
+            GROQ_MODEL,
+            exc,
+        )
+        raise
 
     raw_text = chat_completion.choices[0].message.content.strip()
     parsed = _normalize_response(raw_text)

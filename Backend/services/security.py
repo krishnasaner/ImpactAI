@@ -16,7 +16,7 @@ from config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS
 def hash_password(password: str) -> str:
     # Truncate to 72 bytes to satisfy bcrypt requirements
     pwd_bytes = password.encode("utf-8")[:72]
-    return bcrypt.hashpw(pwd_bytes, bcrypt.gensalt()).decode("utf-8")
+    return bcrypt.hashpw(pwd_bytes, bcrypt.gensalt(rounds=10)).decode("utf-8")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:

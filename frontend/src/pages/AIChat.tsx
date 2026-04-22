@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Heart, MessageCircle, Clock, AlertTriangle, CheckCircle, Shield, Sparkles, Phone } from 'lucide-react';
-import { toast } from 'react-toastify';
 
 interface Message {
   id: string;
@@ -47,6 +46,10 @@ const AIChat = () => {
     setInputText('');
     setIsTyping(true);
 
+    // Abort after 15 seconds to prevent hanging requests
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
@@ -61,11 +64,12 @@ const AIChat = () => {
           session_id: sessionId,
         }),
         credentials: 'include',
+        signal: controller.signal,
       });
 
       if (!res.ok) {
-        const payload = await res.json().catch(() => null);
-        throw new Error(payload?.detail || 'AI service request failed.');
+        const errBody = await res.json().catch(() => null);
+        throw new Error(errBody?.detail || `AI service error (${res.status})`);
       }
 
       const data = await res.json();
@@ -85,9 +89,26 @@ const AIChat = () => {
       };
       setMessages((prev) => [...prev, aiResponse]);
     } catch (error) {
-      console.error(error);
-      toast.error('Unable to connect to the AI backend. Please try again later.');
+      console.error('Chat API error:', error);
+
+      const errorText =
+        error instanceof DOMException && error.name === 'AbortError'
+          ? 'The request timed out. Please check your connection and try again.'
+          : error instanceof Error
+            ? `Unable to reach the AI service: ${error.message}`
+            : 'Unable to connect to the AI backend. Please try again later.';
+
+      // Show error in chat UI so the user always sees feedback
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: errorText,
+        sender: 'ai',
+        timestamp: new Date(),
+        severity: 'medium',
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
+      clearTimeout(timeout);
       setIsTyping(false);
     }
   };

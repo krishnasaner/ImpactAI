@@ -6,10 +6,14 @@ runs the ML severity model for a second opinion, persists the conversation
 turn in SQLite, and returns the response.
 """
 
+import asyncio
 import json
+import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
@@ -79,13 +83,31 @@ async def create_chat(
     history = _build_conversation_history(db, session_id)
 
     # ── 2. Groq AI response (with history) ─────────────────────────────────
-    ai_payload = generate_ai_chat(request.message, history=history)
+    try:
+        ai_payload = await asyncio.to_thread(
+            generate_ai_chat, request.message, history
+        )
+    except RuntimeError as exc:
+        logger.error("Groq API configuration error: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI service is not configured. Please set GROQ_API_KEY.",
+        )
+    except Exception as exc:
+        logger.error("Groq API call failed: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="AI service temporarily unavailable. Please try again.",
+        )
 
     # ── 3. ML severity prediction (second opinion) ─────────────────────────
     ml_severity: Optional[str] = None
     ml_confidence: Optional[float] = None
-    if is_model_available():
-        ml_severity, ml_confidence = predict_severity(request.message)
+    try:
+        if is_model_available():
+            ml_severity, ml_confidence = predict_severity(request.message)
+    except Exception as exc:
+        logger.warning("ML severity prediction failed: %s", exc)
 
     # ── 4. Persist to SQLite ───────────────────────────────────────────────
     chat_record = ChatSessionRow(

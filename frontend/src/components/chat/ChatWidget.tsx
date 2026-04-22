@@ -1041,6 +1041,10 @@ const ChatWidget = () => {
     setInputMessage('');
     setIsTyping(true);
 
+    // Abort after 15 seconds to prevent hanging requests
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
     try {
       const API_BASE_URL =
         (import.meta as any).env?.VITE_API_URL || `http://${window.location.hostname}:5000`;
@@ -1056,9 +1060,13 @@ const ChatWidget = () => {
           session_id: conversationSessionId,
         }),
         credentials: 'include',
+        signal: controller.signal,
       });
 
-      if (!res.ok) throw new Error('AI service unavailable');
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        throw new Error(errBody?.detail || `AI service error (${res.status})`);
+      }
 
       const data = await res.json();
 
@@ -1103,6 +1111,14 @@ const ChatWidget = () => {
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error('Chat API error:', error);
+
+      const errorContent =
+        error instanceof DOMException && error.name === 'AbortError'
+          ? 'The request timed out. Please check your connection and try again.'
+          : error instanceof Error && error.message
+            ? `Sorry, I couldn't connect to the AI service: ${error.message}. I'll use offline support for now.`
+            : 'Sorry, something went wrong. Let me try to help with what I know.';
+
       // Fallback: use local analysis if backend is unreachable
       const analysis = analyzeMessage(messageText, selectedLanguage);
       setCurrentSeverity(analysis.severity);
@@ -1111,7 +1127,7 @@ const ChatWidget = () => {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: fallbackResponse.content,
+        content: `${errorContent}\n\n${fallbackResponse.content}`,
         timestamp: new Date(),
         severity: analysis.severity,
         language: selectedLanguage,
@@ -1119,6 +1135,7 @@ const ChatWidget = () => {
       };
       setMessages((prev) => [...prev, aiMessage]);
     } finally {
+      clearTimeout(timeout);
       setIsTyping(false);
     }
   };
