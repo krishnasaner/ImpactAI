@@ -1,6 +1,8 @@
 // Utility functions for Student Dashboard functionality
 
 import { useState, useEffect } from 'react';
+import api from '@/services/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Types
 export interface MoodEntry {
@@ -48,15 +50,40 @@ export const useMoodTracking = () : {
   getMoodTrend: () => 'improving' | 'declining' | 'stable';
 } => {
   const [moods, setMoods] = useState<MoodEntry[]>([]);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    const storedMoods = localStorage.getItem('mood_entries');
-    if (storedMoods) {
-      setMoods(JSON.parse(storedMoods));
-    }
-  }, []);
+    const loadMoods = async () => {
+      if (isAuthenticated) {
+        try {
+          const res = await api.get('/mood/history');
+          if (res.data && res.data.moods) {
+            const formatted: MoodEntry[] = res.data.moods.map((m: any) => ({
+              date: m.created_at.split('T')[0],
+              mood: Number(m.mood) as 1 | 2 | 3 | 4 | 5,
+              note: m.note,
+              timestamp: new Date(m.created_at).getTime(),
+            }));
+            setMoods(formatted);
+            localStorage.setItem('mood_entries', JSON.stringify(formatted));
+            return;
+          }
+        } catch (err) {
+          console.error('Failed to load moods from backend:', err);
+        }
+      }
 
-  const addMoodEntry = (mood: number, note?: string) => {
+      // Fallback to local storage
+      const storedMoods = localStorage.getItem('mood_entries');
+      if (storedMoods) {
+        setMoods(JSON.parse(storedMoods));
+      }
+    };
+
+    void loadMoods();
+  }, [isAuthenticated]);
+
+  const addMoodEntry = async (mood: number, note?: string) => {
     const today = new Date().toISOString().split('T')[0];
     const newEntry: MoodEntry = {
       date: today,
@@ -68,6 +95,17 @@ export const useMoodTracking = () : {
     const updatedMoods = moods.filter((m) => m.date !== today).concat(newEntry);
     setMoods(updatedMoods);
     localStorage.setItem('mood_entries', JSON.stringify(updatedMoods));
+
+    if (isAuthenticated) {
+      try {
+        await api.post('/mood', {
+          mood: String(mood),
+          note: note || '',
+        });
+      } catch (err) {
+        console.error('Failed to log mood to backend:', err);
+      }
+    }
   };
 
   const getTodayMood = () => {

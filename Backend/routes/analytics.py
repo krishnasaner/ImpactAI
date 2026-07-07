@@ -15,7 +15,7 @@ import matplotlib
 matplotlib.use("Agg")  # non‑interactive backend (no GUI)
 import matplotlib.pyplot as plt
 import pandas as pd
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, HTTPException, status
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -23,6 +23,7 @@ from sqlalchemy import func
 from config import TRAIN_CSV_PATH
 from database import get_db, ChatSessionRow, UserRow, MoodEntryRow
 from services.ml_model import get_model_info
+from routes.auth import _resolve_current_user
 
 router = APIRouter()
 
@@ -94,7 +95,13 @@ def analytics_plot():
 # ═══════════════════ Live DB stats ════════════════════════════════════════════
 
 @router.get("/analytics/db-stats")
-def db_stats(db: Session = Depends(get_db)):
+def db_stats(request: Request, db: Session = Depends(get_db)):
+    user = _resolve_current_user(request, db)
+    if user.role not in ("admin", "counselor"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied. Administrators and Counselors only."
+        )
     total_users = db.query(func.count(UserRow.id)).scalar() or 0
     total_chats = db.query(func.count(ChatSessionRow.id)).scalar() or 0
     total_moods = db.query(func.count(MoodEntryRow.id)).scalar() or 0

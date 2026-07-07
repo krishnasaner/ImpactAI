@@ -11,37 +11,45 @@ import PageTransition from '@/components/ui/PageTransition';
 import ScrollFadeIn from '@/components/ui/ScrollFadeIn';
 import { FaGoogle } from 'react-icons/fa';
 import { useAuth } from '@/contexts/AuthContext';
+import api from '@/services/api';
 
 interface SignupCredentials {
   email: string;
   password: string;
+  confirmPassword: string;
   role: 'student' | 'counselor' | 'admin';
 }
 
 const Signup = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, isAuthenticated, user: authUser } = useAuth();
   const [credentials, setCredentials] = useState<SignupCredentials>({
     email: '',
     password: '',
+    confirmPassword: '',
     role: 'student',
   });
   const [loading, setLoading] = useState(false);
   const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
   const [isCheckingGoogleAuth, setIsCheckingGoogleAuth] = useState(true);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const getDashboardRoute = (role: string) =>
     role === 'admin' || role === 'counselor' ? '/app/admin-dashboard' : '/app/student-dashboard';
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && authUser) {
+      navigate(getDashboardRoute(authUser.role), { replace: true });
+    }
+  }, [isAuthenticated, authUser, navigate]);
+
   useEffect(() => {
     const checkGoogleAuthAvailability = async () => {
       try {
-        const API_BASE_URL =
-          import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
-        const res = await fetch(`${API_BASE_URL}/auth/google/status`);
-        const data = await res.json();
-        setIsGoogleEnabled(Boolean(data?.configured));
+        const res = await api.get('/auth/google/status');
+        setIsGoogleEnabled(Boolean(res.data?.configured));
       } catch {
         setIsGoogleEnabled(false);
       } finally {
@@ -54,30 +62,12 @@ const Signup = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const id = params.get('id');
-    const name = params.get('name');
-    const email = params.get('email');
-    const role = params.get('role');
-    const token = params.get('token');
     const error = params.get('error');
 
     if (error) {
       toast.error(error);
-      return;
     }
-
-    if (name && role && token) {
-      login({
-        id: id || 'current-user',
-        name,
-        email: email || '',
-        role: role as 'student' | 'counselor' | 'admin',
-      }, { token });
-
-      toast.success(`Welcome, ${name}!`);
-      navigate(getDashboardRoute(role), { replace: true });
-    }
-  }, [location, login, navigate]);
+  }, [location]);
 
   const handleRoleChange = (role: 'student' | 'counselor' | 'admin') => {
     setCredentials({ ...credentials, role });
@@ -109,39 +99,74 @@ const Signup = () => {
     }
   };
 
+  const validatePasswordPolicy = (pwd: string): boolean => {
+    const common = ["123", "password", "123456", "qwerty", "abc123"];
+    if (common.includes(pwd.toLowerCase())) {
+      toast.error('Password is too common and weak.');
+      return false;
+    }
+    if (pwd.length < 12) {
+      toast.error('Password must be at least 12 characters long.');
+      return false;
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      toast.error('Password must contain at least one uppercase letter.');
+      return false;
+    }
+    if (!/[a-z]/.test(pwd)) {
+      toast.error('Password must contain at least one lowercase letter.');
+      return false;
+    }
+    if (!/\d/.test(pwd)) {
+      toast.error('Password must contain at least one number.');
+      return false;
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
+      toast.error('Password must contain at least one special character.');
+      return false;
+    }
+    return true;
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    if (credentials.password !== credentials.confirmPassword) {
+      toast.error('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
+
+    if (!validatePasswordPolicy(credentials.password)) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const API_BASE_URL =
-        import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
-      const res = await fetch(`${API_BASE_URL}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-        credentials: 'include',
+      const res = await api.post('/auth/signup', {
+        email: credentials.email,
+        password: credentials.password,
+        confirm_password: credentials.confirmPassword,
+        role: credentials.role,
+        remember_me: rememberMe,
       });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || 'Signup failed');
-      }
-
-      const data = await res.json();
-      const user = data.user;
+      const user = res.data.user;
 
       login({
         id: String(user.id),
         name: user.name || user.email,
         email: user.email || credentials.email,
         role: user.role,
-      }, { token: data.token });
+      }, { remember: rememberMe });
 
       toast.success('Account created successfully!');
       navigate(getDashboardRoute(user.role));
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || 'Signup failed. Please check your credentials.');
+      const errMsg = err.response?.data?.detail || 'Signup failed. Please check your credentials.';
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -253,6 +278,37 @@ const Signup = () => {
                           required
                         />
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          placeholder="Confirm your password"
+                          value={credentials.confirmPassword || ''}
+                          onChange={(e) =>
+                            setCredentials({ ...credentials, confirmPassword: e.target.value })
+                          }
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="rememberMe"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 bg-[#071A1F]"
+                      />
+                      <Label htmlFor="rememberMe" className="text-sm text-muted-foreground cursor-pointer">
+                        Remember Me
+                      </Label>
                     </div>
 
                     <Button

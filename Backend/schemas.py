@@ -4,25 +4,38 @@ ImpactAI — Request / Response schemas (Pydantic v2).
 These are the shapes that the FastAPI routes accept and return.
 """
 
-from datetime import datetime
-from typing import List, Optional, Literal
+from datetime import datetime, timezone
+from typing import List, Optional, Literal, Generic, TypeVar, Any
+from pydantic import BaseModel, EmailStr, Field
 
-from pydantic import BaseModel, EmailStr
+T = TypeVar("T")
+
+# ── Standardized Response Envelope ─────────────────────────────────────────────
+
+class ApiResponse(BaseModel, Generic[T]):
+    success: bool = True
+    message: str = ""
+    data: Optional[T] = None
+    errors: List[str] = []
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
-# ═══════════════════════════════ Auth ══════════════════════════════════════════
+# ── Auth ───────────────────────────────────────────────────────────────────────
 
 class SignupRequest(BaseModel):
     email: EmailStr
     password: str
+    confirm_password: str
     role: Literal["student", "counselor", "admin"] = "student"
     name: Optional[str] = None
+    remember_me: Optional[bool] = True
 
 
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
     role: Literal["student", "counselor", "admin"] = "student"
+    remember_me: Optional[bool] = True
 
 
 class UserResponse(BaseModel):
@@ -32,12 +45,12 @@ class UserResponse(BaseModel):
     name: Optional[str] = None
 
 
-class AuthResponse(BaseModel):
+class AuthResponse(ApiResponse[dict]):
     user: UserResponse
-    token: str
+    token: Optional[str] = None
 
 
-# ═══════════════════════════════ Chat ═════════════════════════════════════════
+# ── Chat ───────────────────────────────────────────────────────────────────────
 
 class ChatRequest(BaseModel):
     message: str
@@ -55,7 +68,7 @@ class ChatResponse(BaseModel):
     created_at: datetime
 
 
-# ═══════════════════════════════ Analytics ════════════════════════════════════
+# ── Analytics ──────────────────────────────────────────────────────────────────
 
 class AnalyticsSummary(BaseModel):
     row_count: int
@@ -65,7 +78,7 @@ class AnalyticsSummary(BaseModel):
     response_length_distribution: dict
 
 
-# ═══════════════════════════════ Mood ═════════════════════════════════════════
+# ── Mood ───────────────────────────────────────────────────────────────────────
 
 class MoodRequest(BaseModel):
     mood: str
@@ -79,7 +92,7 @@ class MoodResponse(BaseModel):
     created_at: datetime
 
 
-# ═══════════════════════════════ ML ═══════════════════════════════════════════
+# ── ML ─────────────────────────────────────────────────────────────────────────
 
 class SeverityPrediction(BaseModel):
     text: str

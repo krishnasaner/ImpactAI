@@ -37,6 +37,7 @@ import { useState, useEffect, useRef } from 'react';
  * @see {@link ../../types/notifications} For notification integration
  */
 
+import api from '@/services/api';
 import { Button } from '@/components/ui/button';
 import {
   MessageCircle,
@@ -1052,53 +1053,16 @@ const ChatWidget = () => {
     setInputMessage('');
     setIsTyping(true);
 
-    const API_BASE_URL =
-      (import.meta as any).env?.VITE_API_URL || `http://${window.location.hostname}:5000`;
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-
-    // Helper: single fetch attempt with configurable timeout
-    const attemptFetch = async (timeoutMs: number) => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-      try {
-        const res = await fetch(`${API_BASE_URL}/chat`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({
-            message: messageText,
-            session_id: conversationSessionId,
-          }),
-          credentials: 'include',
-          signal: controller.signal,
-        });
-        clearTimeout(timer);
-        return res;
-      } catch (err) {
-        clearTimeout(timer);
-        throw err;
-      }
-    };
-
     try {
-      // First attempt: 45s timeout (allows Render cold start ~30-60s)
-      // If it fails, retry once with 20s (backend should be warm now)
-      let res: Response;
-      try {
-        res = await attemptFetch(45000);
-      } catch (firstErr) {
-        console.warn('Chat first attempt failed, retrying...', firstErr);
-        res = await attemptFetch(20000);
-      }
-
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => null);
-        throw new Error(errBody?.detail || `AI service error (${res.status})`);
-      }
-
-      const data = await res.json();
+      const res = await api.post(
+        '/chat',
+        {
+          message: messageText,
+          session_id: conversationSessionId,
+        },
+        { timeout: 45000 }
+      );
+      const data = res.data;
 
       if (data.session_id && !conversationSessionId) {
         setConversationSessionId(data.session_id);

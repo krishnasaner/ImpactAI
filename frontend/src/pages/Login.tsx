@@ -12,13 +12,13 @@ import PageTransition from '@/components/ui/PageTransition';
 import ScrollFadeIn from '@/components/ui/ScrollFadeIn';
 import { FaGoogle } from 'react-icons/fa';
 import { toast } from '@/components/ui/sonner';
-import axios from 'axios';
+import api from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, isAuthenticated, user: authUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
   const [isCheckingGoogleAuth, setIsCheckingGoogleAuth] = useState(true);
@@ -33,34 +33,19 @@ const Login = () => {
   const getDashboardRoute = (role: string) =>
     role === 'admin' || role === 'counselor' ? '/app/admin-dashboard' : '/app/student-dashboard';
 
-  const handleLoginSuccess = (user: {
-    id?: string;
-    name: string;
-    email?: string;
-    role: 'student' | 'counselor' | 'admin';
-    token: string;
-  }) => {
-    login({
-      id: user.id || 'current-user',
-      name: user.name,
-      email: user.email || '',
-      role: user.role,
-    }, { token: user.token, remember: rememberMe });
-  };
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && authUser) {
+      navigate(getDashboardRoute(authUser.role), { replace: true });
+    }
+  }, [isAuthenticated, authUser, navigate]);
 
   useEffect(() => {
     const checkGoogleAuthAvailability = async () => {
       try {
-        const API_BASE_URL =
-          import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
         // Short timeout — don't block the login page waiting for a cold-starting Render backend
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 5000);
-        const response = await axios.get(`${API_BASE_URL}/auth/google/status`, {
-          signal: controller.signal,
-        });
-        clearTimeout(timer);
-        setIsGoogleEnabled(Boolean(response.data?.configured));
+        const res = await api.get('/auth/google/status', { timeout: 5000 });
+        setIsGoogleEnabled(Boolean(res.data?.configured));
       } catch {
         setIsGoogleEnabled(false);
       } finally {
@@ -73,41 +58,19 @@ const Login = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const id = params.get('id');
-    const name = params.get('name');
-    const email = params.get('email');
-    const role = params.get('role');
-    const token = params.get('token');
     const error = params.get('error');
 
     if (error) {
       toast.error(error);
-      return;
     }
-
-    if (name && role && token) {
-      handleLoginSuccess({
-        id: id || undefined,
-        name,
-        email: email || '',
-        role: role as 'student' | 'counselor' | 'admin',
-        token,
-      });
-      toast.success(`Welcome back, ${name}!`);
-      navigate(getDashboardRoute(role), { replace: true });
-    }
-  }, [location, navigate]);
+  }, [location]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const API_BASE_URL =
-        import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
-      const res = await axios.post(`${API_BASE_URL}/auth/login`, credentials, {
-        withCredentials: true,
-      });
+      const res = await api.post('/auth/login', credentials);
       const user = res.data.user;
 
       if (!user) {
@@ -115,19 +78,19 @@ const Login = () => {
         return;
       }
 
-      handleLoginSuccess({
+      login({
         id: String(user.id),
         name: user.name,
         email: user.email,
         role: user.role,
-        token: res.data.token,
-      });
+      }, { remember: rememberMe });
 
       toast.success('Logged in successfully!');
       navigate(getDashboardRoute(user.role));
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error('Login failed. Please try again.');
+      const errorMsg = error.response?.data?.detail || 'Login failed. Please try again.';
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -135,9 +98,9 @@ const Login = () => {
 
   const handleRoleChange = (role: 'student' | 'counselor' | 'admin') => {
     const demoCredentials = {
-      student: { email: 'student@impactai.com', password: 'student123' },
-      counselor: { email: 'counselor@impactai.com', password: 'counselor123' },
-      admin: { email: 'admin@impactai.com', password: 'admin123' },
+      student: { email: 'student@impactai.com', password: 'Student@ImpactAI1!' },
+      counselor: { email: 'counselor@impactai.com', password: 'Counselor@ImpactAI1!' },
+      admin: { email: 'admin@impactai.com', password: 'Admin@ImpactAI1!' },
     };
     setCredentials({ ...demoCredentials[role], role });
   };

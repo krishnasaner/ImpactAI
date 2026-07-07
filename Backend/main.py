@@ -35,14 +35,33 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# ── CORS ───────────────────────────────────────────────────────────────────────
+# ── CORS & Security Headers ───────────────────────────────────────────────────
+
+# Strict CORS allowed origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=".*",
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Custom middleware to append security headers
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://fonts.googleapis.com https://fonts.gstatic.com; "
+        "img-src 'self' data: https://*.googleusercontent.com; "
+        "frame-src 'self' https://accounts.google.com; "
+        "connect-src 'self' http://localhost:5000 http://127.0.0.1:5000 http://localhost:8080 http://127.0.0.1:8080;"
+    )
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+    return response
 
 # ── Route registration ────────────────────────────────────────────────────────
 # Auth routes available at both / and /api/auth for frontend compatibility
