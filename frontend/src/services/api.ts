@@ -1,6 +1,20 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+const CSRF_COOKIE_NAME = 'csrf_token';
+const CSRF_HEADER_NAME = 'X-CSRF-Token';
+
+const getCsrfToken = () => {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  const cookie = document.cookie
+    .split('; ')
+    .find((item) => item.startsWith(`${CSRF_COOKIE_NAME}=`));
+
+  return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : null;
+};
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,29 +24,38 @@ const api = axios.create({
   },
 });
 
-let isRefreshing = false;
-let failedQueue: any[] = [];
+api.interceptors.request.use((config) => {
+  const method = (config.method || 'get').toUpperCase();
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      config.headers = config.headers || {};
+      config.headers[CSRF_HEADER_NAME] = csrfToken;
+    }
+  }
+  return config;
+});
 
-const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: () => void; reject: (error: unknown) => void }> = [];
+
+const processQueue = (error: unknown = null) => {
+  failedQueue.forEach((promise) => {
     if (error) {
-      prom.reject(error);
+      promise.reject(error);
     } else {
-      prom.resolve(token);
+      promise.resolve();
     }
   });
   failedQueue = [];
 };
 
-// Response Interceptor for automatic HttpOnly cookie silent refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Check if error is 401 Unauthorized and request has not been retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      // Don't attempt silent refresh for auth check or login/signup/logout calls itself
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       const isAuthRoute =
         originalRequest.url?.includes('/auth/login') ||
         originalRequest.url?.includes('/auth/signup') ||
@@ -44,35 +67,24 @@ api.interceptors.response.use(
       }
 
       if (isRefreshing) {
-        // Queue the request while refresh is in progress
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then(() => {
-            return api(originalRequest);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+          .then(() => api(originalRequest))
+          .catch((refreshError) => Promise.reject(refreshError));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        // Trigger token rotation via refresh endpoint
-        await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
-        
+        await api.post('/auth/refresh', {});
         isRefreshing = false;
-        processQueue(null);
-        
-        // Retry original request
+        processQueue();
         return api(originalRequest);
       } catch (refreshError) {
         isRefreshing = false;
-        processQueue(refreshError, null);
-        
-        // Refresh token is expired or invalid, trigger logout event
+        processQueue(refreshError);
         window.dispatchEvent(new CustomEvent('auth-logout'));
         return Promise.reject(refreshError);
       }

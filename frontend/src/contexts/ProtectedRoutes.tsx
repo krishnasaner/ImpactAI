@@ -10,25 +10,39 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
   const { login, logout, user: authUser } = useAuth();
-  const [loading, setLoading] = useState(!authUser);
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ role: string } | null>(authUser ? { role: authUser.role } : null);
   const hasChecked = useRef(false);
 
   useEffect(() => {
-    if (authUser) {
+    if (authUser?.isAnonymous) {
       setUser({ role: authUser.role });
+      setLoading(false);
+      hasChecked.current = true;
+      return;
+    }
+
+    if (hasChecked.current) {
+      setUser(authUser ? { role: authUser.role } : null);
       setLoading(false);
       return;
     }
 
-    if (hasChecked.current) return;
-
     const checkAuth = async () => {
       try {
         const res = await api.get('/auth/me');
-        if (res.data.success && res.data.user) {
-          setUser(res.data.user);
-          login(res.data.user, { remember: true });
+        const currentUser = res.data?.user || res.data?.data?.user;
+        if (res.data?.success && currentUser) {
+          setUser(currentUser);
+          login(
+            {
+              id: String(currentUser.id),
+              name: currentUser.name || currentUser.email,
+              email: currentUser.email || '',
+              role: currentUser.role,
+            },
+            { remember: true }
+          );
         } else {
           setUser(null);
           logout();

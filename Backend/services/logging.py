@@ -1,21 +1,24 @@
-"""
-ImpactAI — Audit & Security Structured Logging Service.
-
-Ensures that all key authentication events, model predictions, crisis detections,
-and database lifecycle logs are structured and recorded in both the file logs
-and SQL database (for admin dashboard reporting), while preventing sensitive
-data leaks (like passwords, keys, or cookies).
-"""
+"""Audit and security logging helpers."""
 
 import logging
 from datetime import datetime, timezone
 from typing import Optional
+
 from sqlalchemy.orm import Session
+
 from database import AuditLogRow, SecurityLogRow
 
-# Setup basic audit and security loggers
 logger_audit = logging.getLogger("impactai.audit")
 logger_security = logging.getLogger("impactai.security")
+_SENSITIVE_KEYWORDS = ["password", "token", "cookie", "secret", "gsk_", "jwt"]
+
+
+def _sanitize(value: Optional[str], fallback: str) -> str:
+    sanitized = value or fallback
+    lowered = sanitized.lower()
+    if any(keyword in lowered for keyword in _SENSITIVE_KEYWORDS):
+        return "[REDACTED SENSITIVE DATA]"
+    return sanitized
 
 
 def log_audit_event(
@@ -26,36 +29,27 @@ def log_audit_event(
     ip_address: Optional[str] = None,
     user_agent: Optional[str] = None,
 ) -> None:
-    """
-    Log an event to standard logs and record in database audit logs.
-    Actions: SIGNUP, LOGIN, FAILED_LOGIN, LOCKOUT, LOGOUT, PASSWORD_CHANGE, CRISIS_DETECTED, ROLE_CHANGE
-    """
-    safe_desc = description or ""
-    # Filter out anything looking like password, credentials, secret, token, or cookie
-    for sensitive_keyword in ["password", "token", "cookie", "secret", "gsk_", "jwt"]:
-        if sensitive_keyword in safe_desc.lower():
-            safe_desc = "[REDACTED SENSITIVE DATA]"
-
+    safe_desc = _sanitize(description, "")
     logger_audit.info(
-        "AUDIT: [%s] User %s, IP: %s, UA: %s | Description: %s",
+        "AUDIT [%s] user=%s ip=%s ua=%s desc=%s",
         action,
         user_id or "Anonymous",
         ip_address or "N/A",
         user_agent or "N/A",
         safe_desc,
     )
-
     try:
-        db_log = AuditLogRow(
-            user_id=user_id,
-            action=action,
-            description=safe_desc,
-            ip_address=ip_address,
-            user_agent=user_agent,
-            created_at=datetime.now(timezone.utc),
+        db.add(
+            AuditLogRow(
+                user_id=user_id,
+                action=action,
+                description=safe_desc,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                created_at=datetime.now(timezone.utc),
+            )
         )
-        db.add(db_log)
-        db.commit()
+        db.flush()
     except Exception as exc:
         logger_audit.error("Failed to write audit log to database: %s", exc)
 
@@ -69,18 +63,9 @@ def log_security_event(
     ip_address: Optional[str] = None,
     user_agent: Optional[str] = None,
 ) -> None:
-    """
-    Log a security alert to standard logs and security logs database table.
-    Event Types: JWT_REPLAY, CSRF_BLOCKED, EXPIRED_TOKEN, BRUTE_FORCE, PATH_TRAVERSAL, INJECTION_ATTEMPT
-    """
-    safe_details = details or ""
-    # Sanitization filters
-    for sensitive_keyword in ["password", "token", "cookie", "secret", "gsk_", "jwt"]:
-        if sensitive_keyword in safe_details.lower():
-            safe_details = "[REDACTED SENSITIVE DETAILS]"
-
+    safe_details = _sanitize(details, "")
     logger_security.warning(
-        "SECURITY ALERT: [%s] [%s] User %s, IP: %s, UA: %s | Details: %s",
+        "SECURITY [%s] event=%s user=%s ip=%s ua=%s details=%s",
         severity.upper(),
         event_type,
         user_id or "Anonymous",
@@ -88,18 +73,18 @@ def log_security_event(
         user_agent or "N/A",
         safe_details,
     )
-
     try:
-        db_log = SecurityLogRow(
-            user_id=user_id,
-            event_type=event_type,
-            severity=severity,
-            details=safe_details,
-            ip_address=ip_address,
-            user_agent=user_agent,
-            created_at=datetime.now(timezone.utc),
+        db.add(
+            SecurityLogRow(
+                user_id=user_id,
+                event_type=event_type,
+                severity=severity,
+                details=safe_details,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                created_at=datetime.now(timezone.utc),
+            )
         )
-        db.add(db_log)
-        db.commit()
+        db.flush()
     except Exception as exc:
         logger_security.error("Failed to write security log to database: %s", exc)

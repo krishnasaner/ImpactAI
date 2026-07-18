@@ -152,7 +152,7 @@ const Signup = () => {
         remember_me: rememberMe,
       });
 
-      const user = res.data.user;
+      const user = res.data?.user || res.data?.data?.user;
 
       login({
         id: String(user.id),

@@ -186,13 +186,26 @@ def chat_history(
     http_request: Request = None,
     db: Session = Depends(get_db),
 ):
-    """Return recent chat messages (optionally filtered by session)."""
+    """Return recent chat messages for the authenticated user."""
+    user = _resolve_current_user(http_request, db)
     query = db.query(MessageRow)
     if session_id:
+        chat_session = db.query(ChatSessionRow).filter(ChatSessionRow.session_id == session_id).first()
+        if not chat_session:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat session not found.")
+        if user.role not in ("admin", "counselor") and chat_session.user_id != user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied.")
         query = query.filter(MessageRow.chat_session_id == session_id)
+    elif user.role not in ("admin", "counselor"):
+        session_ids = (
+            db.query(ChatSessionRow.session_id)
+            .filter(ChatSessionRow.user_id == user.id)
+            .subquery()
+        )
+        query = query.filter(MessageRow.chat_session_id.in_(session_ids))
     records = (
         query.order_by(MessageRow.created_at.desc())
-        .limit(limit)
+        .limit(min(limit, 100))
         .all()
     )
     items = []

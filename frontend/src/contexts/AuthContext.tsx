@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import type { User } from '@/types/auth';
 import api from '@/services/api';
 
@@ -21,7 +21,6 @@ interface AuthContextType extends AuthState {
 type SessionPersistence = 'local' | 'session';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 const AUTH_USER_STORAGE_KEY = 'impactai_auth_user';
 
 const getStorage = (persistence: SessionPersistence) =>
@@ -50,23 +49,19 @@ const clearStoredAuth = () => {
   clearLegacyStorage();
 };
 
-const persistSession = (
-  user: User | null,
-  persistence: SessionPersistence = 'local'
-) => {
+const persistSession = (user: User | null, persistence: SessionPersistence = 'local') => {
   if (typeof window === 'undefined') {
     return;
   }
 
   clearStoredAuth();
-
   if (!user) {
     return;
   }
 
   const storage = getStorage(persistence);
   storage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user));
-  storage.setItem('userName', user.name);
+  storage.setItem('userName', user.name || 'Impact AI User');
   storage.setItem('userEmail', user.email || '');
   storage.setItem('userRole', user.role);
 };
@@ -78,15 +73,10 @@ const getStoredAuth = (): { user: User | null; persistence: SessionPersistence }
 
   for (const persistence of ['session', 'local'] as const) {
     const storage = getStorage(persistence);
-
     try {
       const storedUser = storage.getItem(AUTH_USER_STORAGE_KEY);
-
       if (storedUser) {
-        return {
-          user: JSON.parse(storedUser) as User,
-          persistence,
-        };
+        return { user: JSON.parse(storedUser) as User, persistence };
       }
     } catch (error) {
       console.error('Failed to restore auth state from storage:', error);
@@ -104,7 +94,7 @@ const getStoredAuth = (): { user: User | null; persistence: SessionPersistence }
     if (name && role) {
       return {
         user: {
-          id: 'local-session',
+          id: 'legacy-session',
           name,
           email,
           role,
@@ -124,7 +114,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { user } = getStoredAuth();
     return {
       user,
-      isAuthenticated: Boolean(user && user.isAnonymous),
+      isAuthenticated: Boolean(user),
     };
   });
 
@@ -134,7 +124,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       user: null,
       isAuthenticated: false,
     });
-    // Fire API call to clear backend cookies
     api.post('/auth/logout').catch(() => {});
   }, []);
 
@@ -145,7 +134,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const nextUser = options?.anonymous ? { ...userData, isAnonymous: true } : userData;
     persistSession(nextUser, options?.remember === false ? 'session' : 'local');
-
     setAuthState({
       user: nextUser,
       isAuthenticated: true,
@@ -169,29 +157,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
-  // Silent session restoration and global logout listener
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         const res = await api.get('/auth/me');
-        if (res.data.success && res.data.user) {
-          login(res.data.user, { remember: true });
+        const user = res.data?.user || res.data?.data?.user;
+        if (res.data?.success && user) {
+          const stored = getStoredAuth();
+          login(
+            {
+              id: String(user.id),
+              name: user.name || user.email,
+              email: user.email || '',
+              role: user.role,
+            },
+            { remember: stored.persistence !== 'session' }
+          );
+          return;
         }
-      } catch (err) {
-        clearStoredAuth();
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-        });
+      } catch {
+        // Backend session is absent or expired.
       }
+
+      clearStoredAuth();
+      setAuthState({ user: null, isAuthenticated: false });
     };
 
     const handleGlobalLogout = () => {
       clearStoredAuth();
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-      });
+      setAuthState({ user: null, isAuthenticated: false });
     };
 
     window.addEventListener('auth-logout', handleGlobalLogout);

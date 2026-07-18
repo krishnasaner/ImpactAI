@@ -70,8 +70,11 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const res = await api.post('/auth/login', credentials);
-      const user = res.data.user;
+      const res = await api.post('/auth/login', {
+        ...credentials,
+        remember_me: rememberMe,
+      });
+      const user = res.data?.user || res.data?.data?.user;
 
       if (!user) {
         toast.error('Login failed. Please check your credentials.');
