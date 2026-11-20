@@ -67,10 +67,18 @@ const buttonVariants = (options: ButtonVariantOptions) => {
     'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 overflow-hidden before:absolute before:inset-0 before:rounded-xl before:bg-white/0 before:transition-colors hover:before:bg-white/10 active:before:bg-white/5 group',
     // Variant styles
     {
-      'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-premium hover:shadow-floating hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0': variant === 'default',
-      'bg-gradient-to-r from-destructive to-destructive/90 text-destructive-foreground': variant === 'destructive',
-      'border-2 border-primary/20 bg-white/5 backdrop-blur-sm text-foreground': variant === 'outline',
-      // Add other variant styles here
+      'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:-translate-y-0.5 active:translate-y-0': variant === 'default',
+      'bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:-translate-y-0.5 active:translate-y-0 font-semibold': variant === 'hero',
+      'bg-destructive text-destructive-foreground hover:bg-destructive/90': variant === 'destructive',
+      'border border-border bg-background hover:bg-accent/10 hover:text-accent-foreground text-foreground': variant === 'outline',
+      'bg-secondary text-secondary-foreground hover:bg-secondary/80': variant === 'secondary',
+      'hover:bg-accent/10 hover:text-accent-foreground text-foreground': variant === 'ghost',
+      'text-primary underline-offset-4 hover:underline p-0 h-auto': variant === 'link',
+      'bg-trust text-trust-foreground hover:bg-trust/90': variant === 'trust',
+      'bg-safety text-safety-foreground hover:bg-safety/90': variant === 'safety',
+      'bg-primary/10 text-primary hover:bg-primary/20': variant === 'gentle' || variant === 'calm',
+      'bg-accent text-accent-foreground hover:bg-accent/90': variant === 'support',
+      'bg-gradient-to-r from-primary to-accent text-white shadow-md hover:opacity-95': variant === 'premium',
     },
     // Size styles
     {

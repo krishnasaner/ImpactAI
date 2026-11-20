@@ -27,36 +27,42 @@ export default defineConfig(({ mode }) => ({
         manualChunks: (id) => {
           if (!id.includes('node_modules')) {
             if (id.includes('/pages/admin-Dashboard.tsx')) {
-              return 'dashboard';
+              return 'admin-dashboard';
             }
-            if (id.includes('/pages/') && (id.includes('StudentDashboard') || id.includes('Booking'))) {
-              return 'heavy-pages';
+            if (id.includes('/pages/StudentDashboard.tsx')) {
+              return 'student-dashboard';
+            }
+            if (id.includes('/pages/Booking.tsx')) {
+              return 'booking-page';
             }
             return;
           }
 
-          // Keep React in the default vendor graph to avoid circular chunk references.
-          if (id.includes('react') || id.includes('react-dom')) {
-            return 'vendor';
+          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/react-icons')) {
+            return 'icons';
           }
 
-          // UI libraries
-            if (id.includes('@radix-ui')) {
-              return 'radix-ui';
-            }
-
-          // Router and state management
-          if (id.includes('react-router') || id.includes('@tanstack/react-query')) {
-            return 'router-query';
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'radix-ui';
           }
 
-          // Charts and animations
-          if (id.includes('recharts') || id.includes('framer-motion')) {
-            return 'charts-animations';
+          if (id.includes('node_modules/recharts')) {
+            return 'charts';
           }
 
-          // Utilities and smaller libraries
-          if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
+          if (id.includes('node_modules/framer-motion')) {
+            return 'framer-motion';
+          }
+
+          if (id.includes('node_modules/@tanstack/react-query') || id.includes('node_modules/axios')) {
+            return 'network-query';
+          }
+
+          if (id.includes('node_modules/react-router')) {
+            return 'router';
+          }
+
+          if (id.includes('node_modules/date-fns') || id.includes('node_modules/clsx') || id.includes('node_modules/tailwind-merge') || id.includes('node_modules/zod')) {
             return 'utilities';
           }
 
@@ -64,6 +70,6 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 800,
   },
 }));

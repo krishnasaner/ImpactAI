@@ -11,14 +11,13 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import Layout from '@/components/layout/Layout';
 import ChatWidget from '@/components/chat/ChatWidget';
 import NotificationContainer from '@/components/notifications/NotificationContainer';
-import { ErrorBoundary, PageErrorBoundary } from '@/components/error';
+import { ErrorBoundary } from '@/components/error';
 import ScrollToTop from './components/layout/scrollToTop';
 import Signup from './pages/Signup';
 import ProtectedRoute from './contexts/ProtectedRoutes';
 
 const Index = React.lazy(() => import('./pages/PublicLanding'));
 const Login = React.lazy(() => import('./pages/Login'));
-const Register = React.lazy(() => import('./pages/Registration'));
 const InstitutionSelection = React.lazy(() => import('./pages/InstitutionSelection'));
 const Resources = React.lazy(() => import('./pages/Resources'));
 const Forum = React.lazy(() => import('./pages/Forum'));
@@ -34,8 +33,6 @@ const AIChat = React.lazy(() => import('./pages/AIChat'));
 const BreathingExercises = React.lazy(() => import('./pages/BreathingExercises'));
 const NotificationSettings = React.lazy(() => import('./components/settings/NotificationSettings'));
 const EnhancedThemeSettings = React.lazy(() => import('./components/settings/EnhancedThemeSettings'));
-const QuickMoodShowcase = React.lazy(() => import('./components/dashboard/QuickMoodShowcase'));
-const FeedbackDemo = React.lazy(() => import('./pages/FeedbackDemo'));
 const About = React.lazy(() => import('./pages/About'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 const ContactUs = React.lazy(() => import('./pages/ContactUs'));
@@ -91,6 +88,11 @@ const App = () => (
                     <Routes>
                       <Route path="/about" element={<About />} />
                       <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<Signup />} />
+                      <Route path="/register" element={<Navigate to="/signup" replace />} />
+                      <Route path="/privacy" element={<PrivacyPolicy />} />
+                      <Route path="/terms" element={<TermsOfService />} />
+                      <Route path="/cookies" element={<Navigate to="/privacy#cookies" replace />} />
                       <Route path="/select-institution" element={<InstitutionSelection />} />
                       <Route path="/" element={<Index />} />
                       <Route path="/contact" element={<ContactUs />} />
@@ -98,7 +100,6 @@ const App = () => (
                       <Route path="/terms" element={<TermsOfService />} />
                       <Route path="/register" element={<Navigate to="/signup" replace />} />
                       <Route path="*" element={<NotFound />} />
-                      <Route path="/signup" element={<Signup />} />
 
                       {/* Protected Routes */}
                       <Route
@@ -122,8 +123,6 @@ const App = () => (
                         <Route path="breathing" element={<BreathingExercises />} />
                         <Route path="notifications" element={<NotificationSettings />} />
                         <Route path="theme-settings" element={<EnhancedThemeSettings />} />
-                        <Route path="mood-showcase" element={<QuickMoodShowcase />} />
-                        <Route path="feedback-demo" element={<FeedbackDemo />} />
                         <Route path="system" element={<SystemHealth />} />
                         <Route path="users" element={<UserManagement />} />
                         <Route path="moderation" element={<ContentModeration />} />

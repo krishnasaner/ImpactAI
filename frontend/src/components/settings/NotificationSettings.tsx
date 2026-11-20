@@ -67,7 +67,7 @@ const NotificationSettings = () => {
     if (hasPermission) {
       new Notification('🌟 Test Notification', {
         body: 'Great! Your wellness notifications are working perfectly.',
-        icon: '/favicon.ico',
+        icon: '/ImpactAI_logo.png',
       });
       setTestNotificationSent(true);
       setTimeout(() => setTestNotificationSent(false), 3000);

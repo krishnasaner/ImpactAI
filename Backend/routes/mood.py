@@ -49,11 +49,12 @@ def mood_history(
     http_request: Request = None,
     db: Session = Depends(get_db),
 ):
+    safe_limit = max(1, min(limit, 100))
     user = _resolve_current_user(http_request, db)
 
     query = db.query(MoodEntryRow).filter(MoodEntryRow.user_id == user.id)
     records = (
-        query.order_by(MoodEntryRow.created_at.desc()).limit(limit).all()
+        query.order_by(MoodEntryRow.created_at.desc()).limit(safe_limit).all()
     )
     
     return {
