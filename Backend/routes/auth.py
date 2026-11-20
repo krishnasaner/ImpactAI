@@ -50,6 +50,15 @@ def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
+def _to_utc(dt: Optional[datetime]) -> Optional[datetime]:
+    """Ensure naive datetimes from SQLite are correctly treated as UTC."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
 def _build_user_response(user: UserRow) -> UserResponse:
     return UserResponse(
         id=user.id,
@@ -212,34 +221,42 @@ def _resolve_current_user(request: Request, db: Session) -> UserRow:
 
     user_id = payload.get("sub")
     session_id = payload.get("session_id")
-    if not user_id or not session_id:
+    if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload.",
         )
 
     user = db.query(UserRow).filter(UserRow.id == int(user_id)).first()
-    db_session = db.query(SessionRow).filter(SessionRow.session_id == session_id).first()
-    if not user or not db_session or db_session.user_id != user.id:
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found.",
         )
 
-    now = datetime.now(timezone.utc)
-    session_expires_at = _to_utc(db_session.expires_at)
-    if not db_session.is_active or (session_expires_at and session_expires_at <= now):
-        db_session.is_active = 0
-        db.commit()
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session has expired.",
-        )
+    if session_id:
+        db_session = db.query(SessionRow).filter(SessionRow.session_id == session_id).first()
+        if db_session:
+            if db_session.user_id != user.id:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="User not found.",
+                )
 
-    last_activity = _to_utc(db_session.last_activity)
-    if not last_activity or (now - last_activity).total_seconds() >= SESSION_ACTIVITY_UPDATE_SECONDS:
-        db_session.last_activity = now
-        db.commit()
+            now = datetime.now(timezone.utc)
+            session_expires_at = _to_utc(db_session.expires_at)
+            if not db_session.is_active or (session_expires_at and session_expires_at <= now):
+                db_session.is_active = 0
+                db.commit()
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Session has expired.",
+                )
+
+            last_activity = _to_utc(db_session.last_activity)
+            if not last_activity or (now - last_activity).total_seconds() >= SESSION_ACTIVITY_UPDATE_SECONDS:
+                db_session.last_activity = now
+                db.commit()
 
     return user
 
@@ -270,6 +287,13 @@ def signup(
     ok, error_msg = validate_password_strength(request.password)
     if not ok:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
+
+    # Prevent privilege escalation via self-registration
+    if request.role == "admin":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Administrator accounts cannot be created via public self-registration.",
+        )
 
     existing = db.query(UserRow).filter(UserRow.email == normalized_email).first()
     if existing:
@@ -324,7 +348,8 @@ def login(
         verify_password_with_timing_defense(request.password, None)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=generic_error)
 
-    if user.lockout_until and user.lockout_until > datetime.now(timezone.utc):
+    lockout_until = _to_utc(user.lockout_until)
+    if lockout_until and lockout_until > datetime.now(timezone.utc):
         log_security_event(
             db,
             "BRUTE_FORCE",
@@ -335,7 +360,10 @@ def login(
             ua,
         )
         db.commit()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=generic_error)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account is temporarily locked due to repeated failed logins. Please try again later.",
+        )
 
     if request.role != user.role:
         verify_password_with_timing_defense(request.password, user.hashed_password)
@@ -617,6 +645,8 @@ def google_oauth_callback(
         try:
             state_data = decode_oauth_state(state)
             role = state_data.get("role", "student")
+            if role == "admin":
+                role = "student"
             next_page = state_data.get("next", "login")
         except ValueError:
             return RedirectResponse(f"{FRONTEND_URL.rstrip('/')}/login?error=Invalid Google sign-in state")

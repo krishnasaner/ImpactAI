@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heart, Mail, Lock, User, Shield, GraduationCap } from 'lucide-react';
 import { LoginCredentials } from '@/types/auth';
@@ -164,175 +163,187 @@ const Login = () => {
 
   return (
     <PageTransition>
-      <div className="flex flex-col bg-gradient-calm">
-        <main className="min-h-screen flex items-center justify-center p-4">
-          <div className="w-full max-w-md space-y-6">
-            <ScrollFadeIn yOffset={20}>
-              <div className="text-center space-y-2">
-                <Link to="/" className="flex items-center justify-center space-x-2 group">
-                  <img
-                    src="/ImpactAI_logo.png"
-                    alt="Impact AI Logo"
-                    className="h-20 md:h-28 w-auto mx-auto object-contain"
-                  />
-                </Link>
-                <p className="text-muted-foreground">Your trusted mental health companion</p>
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-6">
+          {/* Logo & tagline */}
+          <ScrollFadeIn yOffset={20}>
+            <div className="text-center space-y-2">
+              <Link to="/" className="inline-block">
+                <img
+                  src="/ImpactAI_logo.png"
+                  alt="ImpactAI Logo"
+                  className="h-16 w-auto mx-auto mb-2 object-contain"
+                />
+              </Link>
+              <p className="text-gray-500 text-sm">Your trusted mental health companion</p>
+            </div>
+          </ScrollFadeIn>
+
+          {/* Card */}
+          <ScrollFadeIn yOffset={16} delay={0.07}>
+            <div className="bg-white rounded-2xl shadow-lg p-8">
+              {/* Card header */}
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+                <p className="text-gray-500 text-sm mt-1">
+                  Choose your role to access your personalized dashboard
+                </p>
               </div>
-            </ScrollFadeIn>
 
-            <ScrollFadeIn yOffset={16} delay={0.07}>
-              <Card className="shadow-trust">
-                <CardHeader className="space-y-1">
-                  <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-                  <CardDescription className="text-center">
-                    Choose your role to access your personalized dashboard
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent>
-                  <Tabs defaultValue="student" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-6">
-                      {(['student', 'counselor', 'admin'] as const).map((role) => (
-                        <TabsTrigger
-                          key={role}
-                          value={role}
-                          onClick={() => handleRoleChange(role)}
-                          className="flex items-center space-x-1"
-                        >
-                          {getRoleIcon(role)}
-                          <span className="hidden sm:inline capitalize">{role}</span>
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-
-                    {(['student', 'counselor', 'admin'] as const).map((role) => (
-                      <TabsContent key={role} value={role} className="space-y-4">
-                        <div className="text-center p-3 bg-muted rounded-lg">
-                          <div className="flex items-center justify-center space-x-2 mb-1">
-                            {getRoleIcon(role)}
-                            <span className="font-medium capitalize">{role} Portal</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {getRoleDescription(role)}
-                          </p>
-                        </div>
-                      </TabsContent>
-                    ))}
-                  </Tabs>
-
-                  <form onSubmit={handleLogin} className="space-y-4 mt-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="Enter your email"
-                          value={credentials.email}
-                          onChange={(e) =>
-                            setCredentials({ ...credentials, email: e.target.value })
-                          }
-                          className="pl-10"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="password"
-                          type="password"
-                          placeholder="Enter your password"
-                          value={credentials.password}
-                          onChange={(e) =>
-                            setCredentials({ ...credentials, password: e.target.value })
-                          }
-                          className="pl-10"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="remember-me"
-                          checked={rememberMe}
-                          onCheckedChange={(checked) => setRememberMe(Boolean(checked))}
-                        />
-                        <Label htmlFor="remember-me" className="cursor-pointer text-sm">
-                          Remember me on this device
-                        </Label>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {rememberMe ? 'Persistent session' : 'Session only'}
-                      </span>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      variant="hero"
-                      size="lg"
-                      className="w-full"
-                      disabled={isLoading}
+              {/* Role tabs */}
+              <Tabs defaultValue="student" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 mb-6 bg-gray-100 rounded-lg p-1">
+                  {(['student', 'counselor', 'admin'] as const).map((role) => (
+                    <TabsTrigger
+                      key={role}
+                      value={role}
+                      onClick={() => handleRoleChange(role)}
+                      className="flex items-center gap-1.5 rounded-md data-[state=active]:bg-[#2F7A6D] data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
                     >
-                      {isLoading ? 'Signing In...' : 'Sign In'}
-                    </Button>
-                  </form>
+                      {getRoleIcon(role)}
+                      <span className="hidden sm:inline capitalize">{role}</span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
 
-                  <Button
-                    onClick={handleGoogleLogin}
-                    variant="outline"
-                    size="lg"
-                    className="w-full mt-4 flex items-center justify-center space-x-2"
-                    disabled={isCheckingGoogleAuth}
-                  >
-                    <FaGoogle className="h-5 w-5" />
-                    <span>
-                      {isCheckingGoogleAuth
-                        ? 'Checking Google Sign-In...'
-                        : 'Sign in with Google'}
-                    </span>
-                  </Button>
-
-                  <div className="mt-4 rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-4 text-left">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="font-semibold text-foreground">Continue anonymously</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Jump straight into anonymous support and private booking without exposing
-                          your identity in the experience.
-                        </p>
+                {(['student', 'counselor', 'admin'] as const).map((role) => (
+                  <TabsContent key={role} value={role} className="space-y-4">
+                    <div className="text-center p-3 bg-teal-50 rounded-lg border border-teal-100">
+                      <div className="flex items-center justify-center space-x-2 mb-1 text-[#2F7A6D]">
+                        {getRoleIcon(role)}
+                        <span className="font-medium capitalize">{role} Portal</span>
                       </div>
-                      <Button variant="secondary" onClick={handleAnonymousContinue}>
-                        Anonymous Mode
-                      </Button>
+                      <p className="text-sm text-gray-500">
+                        {getRoleDescription(role)}
+                      </p>
                     </div>
-                  </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
 
-                  <div className="mt-6 text-center text-sm">
-                    <span className="text-muted-foreground">Don’t have an account? </span>
-                    <Link to="/signup" className="text-primary hover:underline font-medium">
-                      Sign up
-                    </Link>
+              {/* Login form */}
+              <form onSubmit={handleLogin} className="space-y-4 mt-6">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={credentials.email}
+                      onChange={(e) =>
+                        setCredentials({ ...credentials, email: e.target.value })
+                      }
+                      className="pl-10 border-gray-200 rounded-lg focus:border-[#2F7A6D] focus:ring-2 focus:ring-[#2F7A6D]/20"
+                      required
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            </ScrollFadeIn>
+                </div>
 
-            <ScrollFadeIn delay={0.11}>
-              <div className="text-center space-y-2 text-sm md:text-base text-muted-foreground">
-                <p>Your privacy is protected with end-to-end encryption</p>
-                <p>Confidential support available 24/7</p>
-                <p>HIPAA compliant and stigma-free environment</p>
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Enter your password"
+                      value={credentials.password}
+                      onChange={(e) =>
+                        setCredentials({ ...credentials, password: e.target.value })
+                      }
+                      className="pl-10 border-gray-200 rounded-lg focus:border-[#2F7A6D] focus:ring-2 focus:ring-[#2F7A6D]/20"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Remember me */}
+                <div className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="remember-me"
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMe(Boolean(checked))}
+                      className="border-gray-300 data-[state=checked]:bg-[#2F7A6D] data-[state=checked]:border-[#2F7A6D]"
+                    />
+                    <Label htmlFor="remember-me" className="cursor-pointer text-sm text-gray-600">
+                      Remember me on this device
+                    </Label>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {rememberMe ? 'Persistent session' : 'Session only'}
+                  </span>
+                </div>
+
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full py-3 bg-[#2F7A6D] hover:bg-teal-700 text-white rounded-lg font-semibold transition-colors"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Signing In...' : 'Sign In'}
+                </Button>
+              </form>
+
+              {/* Google sign-in */}
+              <div title={!isGoogleEnabled && !isCheckingGoogleAuth ? 'Google sign-in is not configured on this instance' : undefined}>
+                <Button
+                  onClick={handleGoogleLogin}
+                  variant="outline"
+                  size="lg"
+                  className="w-full mt-4 flex items-center justify-center gap-2 border-gray-200 hover:border-[#2F7A6D] hover:text-[#2F7A6D] rounded-lg transition-colors"
+                  disabled={isCheckingGoogleAuth}
+                >
+                  <FaGoogle className="h-4 w-4" />
+                  <span>
+                    {isCheckingGoogleAuth
+                      ? 'Checking Google Sign-In...'
+                      : 'Sign in with Google'}
+                  </span>
+                </Button>
               </div>
-            </ScrollFadeIn>
-          </div>
-        </main>
+
+              {/* Anonymous mode */}
+              <div className="mt-4 border border-dashed border-[#2F7A6D]/30 bg-teal-50/50 rounded-xl p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="font-semibold text-gray-800">Continue anonymously</h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Jump straight into anonymous support and private booking without exposing
+                      your identity.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAnonymousContinue}
+                    className="shrink-0 border-[#2F7A6D]/40 text-[#2F7A6D] hover:bg-[#2F7A6D] hover:text-white transition-colors"
+                  >
+                    Anonymous Mode
+                  </Button>
+                </div>
+              </div>
+
+              {/* Sign-up link */}
+              <div className="mt-6 text-center text-sm">
+                <span className="text-gray-500">Don't have an account? </span>
+                <Link to="/signup" className="text-[#2F7A6D] hover:underline font-medium">
+                  Sign up
+                </Link>
+              </div>
+            </div>
+          </ScrollFadeIn>
+
+          {/* Trust signals */}
+          <ScrollFadeIn delay={0.11}>
+            <div className="text-center space-y-1 text-xs text-gray-400">
+              <p>🔒 End-to-end encrypted · HIPAA compliant · Stigma-free</p>
+              <p>Confidential support available 24/7</p>
+            </div>
+          </ScrollFadeIn>
+        </div>
       </div>
     </PageTransition>
   );

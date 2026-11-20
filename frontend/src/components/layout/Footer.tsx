@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import {
-  Heart,
   Mail,
   Phone,
   MapPin,
@@ -35,10 +34,10 @@ const Footer = () => {
       { name: 'Terms of Service', href: '/terms' },
     ],
     support: [
-      { name: 'Help Center', href: '/help' },
-      { name: 'Crisis Support', href: '/crisis' },
-      { name: 'FAQ', href: '/faq' },
-      { name: 'Report Issue', href: '/report' },
+      { name: 'Help Center', href: '/contact' },
+      { name: 'Crisis Support', href: '/contact' },
+      { name: 'FAQ', href: '/#faq' },
+      { name: 'Report Issue', href: '/contact' },
     ],
   };
 
@@ -51,7 +50,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-[#071A1F] border-t border-[#4FD1C5]/[0.08] mt-auto text-[#F8FAFC]/70">
+    <footer className="bg-slate-50 border-t border-gray-200 mt-auto text-gray-600">
       {/* Main Footer Content */}
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -59,40 +58,40 @@ const Footer = () => {
           <div className="lg:col-span-1 space-y-4">
             <Link
               to="/"
-              className="flex items-center group transition-all duration-300 hover:scale-105"
+              className="flex items-center group transition-all duration-300 hover:opacity-85"
             >
-              <img src="/ImpactAI_logo.png" alt="Impact AI Logo" className="h-16 md:h-20 w-auto object-contain" />
+              <img src="/ImpactAI_logo.png" alt="Impact AI Logo" className="h-14 w-auto object-contain" />
             </Link>
 
-            <p className="leading-relaxed max-w-sm">
+            <p className="text-sm text-gray-500 leading-relaxed max-w-sm">
               Supporting students' mental health with AI-powered assistance, professional
-              counseling, and a safe community environment.
+              counseling, and a safe, stigma-free community environment.
             </p>
 
             {/* Trust Indicators */}
             <div className="flex items-center space-x-4 pt-2">
-              <div className="flex items-center space-x-2 text-sm text-[#F8FAFC]/70">
-                <Shield className="h-4 w-4 text-[#4FD1C5]" />
+              <div className="flex items-center space-x-2 text-xs font-medium text-gray-600">
+                <Shield className="h-4 w-4 text-[#2F7A6D]" />
                 <span>HIPAA Compliant</span>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-[#F8FAFC]/70">
-                <Lock className="h-4 w-4 text-[#4FD1C5]" />
-                <span>Secure</span>
+              <div className="flex items-center space-x-2 text-xs font-medium text-gray-600">
+                <Lock className="h-4 w-4 text-[#2F7A6D]" />
+                <span>Encrypted & Confidential</span>
               </div>
             </div>
           </div>
 
           {/* Platform Links */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg text-[#F8FAFC]">Platform</h3>
-            <ul className="space-y-3">
+            <h3 className="font-semibold text-base text-gray-900">Platform</h3>
+            <ul className="space-y-2.5 text-sm">
               {footerLinks.platform.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="flex items-center space-x-2 text-[#F8FAFC]/70 hover:text-[#4FD1C5] gentle-transition group"
+                    className="flex items-center space-x-2 text-gray-600 hover:text-[#2F7A6D] transition-colors group"
                   >
-                    <link.icon className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                    <link.icon className="h-4 w-4 text-gray-400 group-hover:text-[#2F7A6D] transition-colors" />
                     <span>{link.name}</span>
                   </Link>
                 </li>
@@ -102,13 +101,13 @@ const Footer = () => {
 
           {/* Company Links */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg text-[#F8FAFC]">Company</h3>
-            <ul className="space-y-3">
+            <h3 className="font-semibold text-base text-gray-900">Company</h3>
+            <ul className="space-y-2.5 text-sm">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="text-[#F8FAFC]/70 hover:text-[#4FD1C5] gentle-transition"
+                    className="text-gray-600 hover:text-[#2F7A6D] transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -119,13 +118,13 @@ const Footer = () => {
 
           {/* Support & Contact */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg text-[#F8FAFC]">Support</h3>
-            <ul className="space-y-3">
+            <h3 className="font-semibold text-base text-gray-900">Support</h3>
+            <ul className="space-y-2.5 text-sm">
               {footerLinks.support.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="text-[#F8FAFC]/70 hover:text-[#4FD1C5] gentle-transition"
+                    className="text-gray-600 hover:text-[#2F7A6D] transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -134,105 +133,95 @@ const Footer = () => {
             </ul>
 
             {/* Contact Information */}
-            <div className="pt-4 space-y-2">
-              <div className="flex items-center space-x-2 text-sm text-[#F8FAFC]/70">
-                <Mail className="h-4 w-4" />
+            <div className="pt-2 space-y-2 text-sm text-gray-600">
+              <div className="flex items-center space-x-2">
+                <Mail className="h-4 w-4 text-[#2F7A6D]" />
                 <a
                   href="mailto:support@impactai.com"
-                  className="hover:text-[#4FD1C5] gentle-transition"
+                  className="hover:text-[#2F7A6D] transition-colors"
                 >
                   support@impactai.com
                 </a>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-[#F8FAFC]/70">
-                <Phone className="h-4 w-4" />
-                <a href="tel:+1234567890" className="hover:text-[#4FD1C5] gentle-transition">
-                  +1 (234) 567-890
+              <div className="flex items-center space-x-2">
+                <Phone className="h-4 w-4 text-[#2F7A6D]" />
+                <a href="tel:14416" className="hover:text-[#2F7A6D] transition-colors">
+                  Helpline: 14416 (Tele-MANAS)
                 </a>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-[#F8FAFC]/70">
-                <MapPin className="h-4 w-4" />
-                <span>San Francisco, CA</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Social Media & Newsletter */}
-        <div className="mt-12 pt-8 border-t border-[#4FD1C5]/[0.08]">
-          <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
+        <div className="mt-10 pt-6 border-t border-gray-200">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
             {/* Social Media Links */}
             <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-[#F8FAFC]">Follow us:</span>
-              <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-gray-700">Follow us:</span>
+              <div className="flex items-center space-x-2">
                 {socialLinks.map((social) => (
                   <a
                     key={social.name}
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 rounded-lg bg-white/5 hover:bg-[#4FD1C5]/10 hover:text-[#4FD1C5] gentle-transition group"
+                    className="p-2 rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-[#2F7A6D] hover:border-[#2F7A6D] transition-colors"
                     aria-label={`Follow us on ${social.name}`}
                   >
-                    <social.icon className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                    <social.icon className="h-4 w-4" />
                   </a>
                 ))}
               </div>
             </div>
 
             {/* Newsletter Signup */}
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-[#F8FAFC]">Stay updated:</span>
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-gray-700 hidden sm:inline">Stay updated:</span>
+              <form onSubmit={(e) => e.preventDefault()} className="flex items-center space-x-2">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="px-3 py-2 text-sm bg-white/5 border border-[#4FD1C5]/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#4FD1C5]/20 focus:border-[#4FD1C5] gentle-transition"
+                  className="px-3.5 py-2 text-sm bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F7A6D]/20 focus:border-[#2F7A6D] transition-colors"
                 />
-                <button className="px-4 py-2 text-sm bg-[#4FD1C5] hover:bg-[#38b2ac] text-[#071A1F] font-semibold rounded-lg gentle-transition">
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm bg-[#2F7A6D] hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+                >
                   Subscribe
                 </button>
-              </div>
+              </form>
             </div>
           </div>
         </div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-[#4FD1C5]/[0.08] bg-[#0E3440]/15">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+      <div className="border-t border-gray-200 bg-gray-100/70">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
             {/* Copyright */}
-            <div className="flex items-center space-x-2 text-sm text-[#F8FAFC]/60">
-              <span>© {currentYear} Impact AI. All rights reserved.</span>
+            <div>
+              <span>© {currentYear} ImpactAI. All rights reserved.</span>
             </div>
 
             {/* Additional Links */}
-            <div className="flex items-center space-x-6 text-sm">
-              <Link
-                to="/privacy"
-                className="text-[#F8FAFC]/60 hover:text-[#4FD1C5] gentle-transition"
-              >
+            <div className="flex items-center space-x-6">
+              <Link to="/privacy" className="hover:text-[#2F7A6D] transition-colors">
                 Privacy Policy
               </Link>
-              <Link
-                to="/terms"
-                className="text-[#F8FAFC]/60 hover:text-[#4FD1C5] gentle-transition"
-              >
+              <Link to="/terms" className="hover:text-[#2F7A6D] transition-colors">
                 Terms of Service
               </Link>
-              <Link
-                to="/cookies"
-                className="text-[#F8FAFC]/60 hover:text-[#4FD1C5] gentle-transition"
-              >
+              <Link to="/cookies" className="hover:text-[#2F7A6D] transition-colors">
                 Cookie Policy
               </Link>
             </div>
 
             {/* Crisis Support Notice */}
-            <div className="flex items-center space-x-2 text-sm text-[#F8FAFC]/60">
-              <Globe className="h-4 w-4" />
-              <span>Available 24/7 for crisis support</span>
+            <div className="flex items-center space-x-1.5 text-gray-600">
+              <Globe className="h-3.5 w-3.5 text-[#2F7A6D]" />
+              <span>Available 24/7 for student wellness</span>
             </div>
           </div>
         </div>

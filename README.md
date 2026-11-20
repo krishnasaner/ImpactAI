@@ -3,7 +3,9 @@
 
 ImpactAI is an advanced, AI-powered mental health support platform designed to provide immediate, compassionate, and intelligent conversational care. Acting as a bridge between individuals seeking support and mental health professionals, ImpactAI features a sophisticated architecture incorporating real-time crisis detection, multi-lingual support, and predictive severity modeling.
 
-![ImpactAI Overview](/api/placeholder/1000/400)
+<p align="center">
+  <img src="frontend/public/ImpactAI_logo.png" alt="ImpactAI Logo" width="280" />
+</p>
 
 ## 🌟 Key Features
 

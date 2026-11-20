@@ -103,6 +103,20 @@ async def create_chat(
         db.add(chat_session)
         db.commit()
         db.refresh(chat_session)
+    else:
+        # Enforce strict session ownership and data isolation
+        if chat_session.user_id is not None:
+            if not user or user.id != chat_session.user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: chat session belongs to another user.",
+                )
+        else:
+            # Anonymous session: associate with newly authenticated user if logged in
+            if user:
+                chat_session.user_id = user.id
+                chat_session.user_role = user.role
+                db.commit()
 
     # ── 1. Build conversation history for context ──────────────────────────
     history = _build_conversation_history(db, session_id)
@@ -186,26 +200,54 @@ def chat_history(
     http_request: Request = None,
     db: Session = Depends(get_db),
 ):
-    """Return recent chat messages for the authenticated user."""
-    user = _resolve_current_user(http_request, db)
-    query = db.query(MessageRow)
-    if session_id:
-        chat_session = db.query(ChatSessionRow).filter(ChatSessionRow.session_id == session_id).first()
-        if not chat_session:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat session not found.")
-        if user.role not in ("admin", "counselor") and chat_session.user_id != user.id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied.")
-        query = query.filter(MessageRow.chat_session_id == session_id)
-    elif user.role not in ("admin", "counselor"):
-        session_ids = (
-            db.query(ChatSessionRow.session_id)
-            .filter(ChatSessionRow.user_id == user.id)
-            .subquery()
+    """Return recent chat messages (optionally filtered by session) with strict access control."""
+    safe_limit = max(1, min(limit, 100))
+    user = _get_optional_user(http_request, db) if http_request else None
+
+    if not session_id:
+        # Anonymous users cannot request a global message dump
+        if not user:
+            return {"messages": [], "count": 0}
+
+        # Counselors and admins may view global history for triage, students only see their own sessions
+        if user.role in ("admin", "counselor"):
+            query = db.query(MessageRow)
+        else:
+            user_session_tuples = (
+                db.query(ChatSessionRow.session_id)
+                .filter(ChatSessionRow.user_id == user.id)
+                .all()
+            )
+            user_session_ids = [s[0] for s in user_session_tuples]
+            if not user_session_ids:
+                return {"messages": [], "count": 0}
+            query = db.query(MessageRow).filter(MessageRow.chat_session_id.in_(user_session_ids))
+    else:
+        chat_session = (
+            db.query(ChatSessionRow)
+            .filter(ChatSessionRow.session_id == session_id)
+            .first()
         )
-        query = query.filter(MessageRow.chat_session_id.in_(session_ids))
+        if not chat_session:
+            return {"messages": [], "count": 0}
+
+        if chat_session.user_id is not None:
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authentication required to access this chat session.",
+                )
+            if user.id != chat_session.user_id and user.role not in ("admin", "counselor"):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: chat session belongs to another user.",
+                )
+
+        query = db.query(MessageRow).filter(MessageRow.chat_session_id == session_id)
+
     records = (
         query.order_by(MessageRow.created_at.desc())
-        .limit(min(limit, 100))
+        .limit(safe_limit)
         .all()
     )
     items = []

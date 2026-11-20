@@ -3,18 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Footer from '@/components/layout/Footer';
 import Header from '@/components/layout/Header';
-import { OptimizedImage } from '@/components/ui/optimized-image';
-import heroImage from '@/assets/freepik__retouch__90823.png';
-import { Shield, Heart, UserCheck, CheckCircle, Play } from 'lucide-react';
-import { useEffect } from 'react';
+import { Shield, Heart, UserCheck, CheckCircle, Sparkles, Activity } from 'lucide-react';
 import ScrollFadeIn from '@/components/ui/ScrollFadeIn';
 import PageTransition from '@/components/ui/PageTransition';
 
 const About = () => {
-  useEffect(() => {
-    // small client-side enhancement hook placeholder (e.g., could init Lottie later)
-  }, []);
-
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -53,20 +46,43 @@ const About = () => {
               </div>
 
               <div className="relative">
-                <div className="rounded-2xl overflow-hidden shadow-xl transform hover:scale-102 transition-transform duration-500">
-                  <OptimizedImage
-                    src={heroImage}
-                    alt="Compassionate mental health care illustration depicting supportive healthcare professionals and individuals in a nurturing therapeutic environment"
-                    className="w-full h-80 md:h-96 object-cover"
-                    loading="eager"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
-                  />
+                <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[320px]">
+                  <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/20 rounded-full blur-3xl" />
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-xl bg-primary/15 text-primary">
+                        <Sparkles className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">Impact AI Companion</h3>
+                        <p className="text-xs text-muted-foreground">24/7 Intelligent Crisis Care</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Active</Badge>
+                  </div>
+                  
+                  <div className="space-y-3 my-4">
+                    <div className="bg-muted/40 p-3.5 rounded-lg border border-border/40 text-sm">
+                      <span className="font-medium text-primary">Zenith AI: </span>
+                      "I'm here for you. Take a deep breath — you're in a safe, judgment-free space."
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Activity className="h-3.5 w-3.5 text-primary animate-pulse" />
+                      <span>Dual-layer ML Crisis Detection Active</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Privacy First • Encrypted Sessions</span>
+                    <span className="text-primary font-medium">100% Confidential</span>
+                  </div>
                 </div>
-                <div className="absolute -bottom-6 left-6 bg-white/6 backdrop-blur-md rounded-xl p-4 shadow-md flex items-center gap-3">
+
+                <div className="absolute -bottom-6 left-6 bg-card/90 backdrop-blur-md rounded-xl p-4 shadow-xl flex items-center gap-3 border border-border/50">
                   <Heart className="h-6 w-6 text-primary" />
                   <div>
-                    <div className="text-sm text-white/90">Trusted by</div>
-                    <div className="font-semibold text-lg">10,000+ students</div>
+                    <div className="text-xs text-muted-foreground">Trusted by</div>
+                    <div className="font-semibold text-sm text-foreground">10,000+ students</div>
                   </div>
                 </div>
               </div>

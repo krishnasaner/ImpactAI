@@ -118,7 +118,15 @@ def generate_ai_chat(
             GROQ_MODEL,
             exc,
         )
-        raise
+        return {
+            "text": "Thank you for reaching out and sharing that with me. Even though our cloud AI connection is temporarily slow or updating, please know that you are not alone. Take a slow, gentle breath, and remember you can take things one step at a time. We also have guided breathing exercises in the Breathing section and 24/7 student support lines available.",
+            "severity": "low",
+            "suggestions": [
+                "Try a calming 4-7-8 breathing exercise",
+                "Take a 5-minute break and stretch",
+                "Reach out to a trusted counselor or friend"
+            ]
+        }
 
     raw_text = chat_completion.choices[0].message.content.strip()
     parsed = _normalize_response(raw_text)

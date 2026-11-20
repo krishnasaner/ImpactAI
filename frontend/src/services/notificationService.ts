@@ -281,8 +281,8 @@ class NotificationService {
     try {
       const browserNotification = new Notification(notification.title, {
         body: notification.message,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
+        icon: '/ImpactAI_logo.png',
+        badge: '/ImpactAI_logo.png',
         silent: !this.preferences.general.sound,
         requireInteraction: true,
       });
