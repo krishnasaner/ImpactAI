@@ -16,7 +16,7 @@ import ScrollToTop from './components/layout/scrollToTop';
 import Signup from './pages/Signup';
 import ProtectedRoute from './contexts/ProtectedRoutes';
 
-const Index = React.lazy(() => import('./pages/Index'));
+const Index = React.lazy(() => import('./pages/PublicLanding'));
 const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Registration'));
 const InstitutionSelection = React.lazy(() => import('./pages/InstitutionSelection'));
@@ -40,6 +40,8 @@ const About = React.lazy(() => import('./pages/About'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 const ContactUs = React.lazy(() => import('./pages/ContactUs'));
 const MentalHealthBlog = React.lazy(() => import('./pages/MentalHealthBlog'));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
 
 const queryClient = new QueryClient();
 
@@ -92,6 +94,9 @@ const App = () => (
                       <Route path="/select-institution" element={<InstitutionSelection />} />
                       <Route path="/" element={<Index />} />
                       <Route path="/contact" element={<ContactUs />} />
+                      <Route path="/privacy" element={<PrivacyPolicy />} />
+                      <Route path="/terms" element={<TermsOfService />} />
+                      <Route path="/register" element={<Navigate to="/signup" replace />} />
                       <Route path="*" element={<NotFound />} />
                       <Route path="/signup" element={<Signup />} />
 

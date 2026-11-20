@@ -69,7 +69,7 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
+    <header className="sticky top-0 z-50 w-full border-b-2 border-black bg-white">
       <div className="container flex h-16 items-center justify-between px-6">
         {isAppShell && user ? (
           <DropdownMenu>
@@ -144,8 +144,8 @@ const Header = () => {
                 to={item.href}
                 className={`rounded-lg px-3 py-2 transition-colors duration-200 ${
                   isActiveRoute(item.href)
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-blue-600 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-blue-400'
+                    ? 'border-2 border-black bg-[#FFE17C] text-black shadow-[3px_3px_0_#000]'
+                    : 'text-[#171E19] hover:border-2 hover:border-black hover:bg-[#B7C6C2]'
                 }`}
               >
                 <span>{item.name}</span>

@@ -247,7 +247,7 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-mesh">
+    <div className="min-h-screen bg-[#F7F7F2]">
       <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-6 sm:py-8 space-y-8 sm:space-y-12 max-w-7xl">
         {/* Enhanced Welcome Section */}
         <section className="text-center space-y-6 fade-in">

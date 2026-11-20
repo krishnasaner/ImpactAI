@@ -187,7 +187,7 @@ const Signup = () => {
 
   return (
     <PageTransition>
-      <div className="flex flex-col bg-gradient-calm">
+      <div className="flex flex-col bg-[#B7C6C2]">
         <main className="min-h-screen flex items-center justify-center p-4">
           <div className="w-full max-w-md space-y-6">
             <ScrollFadeIn yOffset={20}>

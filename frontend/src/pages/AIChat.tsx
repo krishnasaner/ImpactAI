@@ -125,25 +125,36 @@ const AIChat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-mesh">
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
+    <div className="min-h-screen bg-[#F7F7F2]">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         {/* Chat Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold mb-2">ImpactAI Support</h1>
-          <p className="text-muted-foreground">
-            Your personal mental health companion — confidential and available 24/7.
-          </p>
-          <div className="flex justify-center gap-2 mt-2">
-            <Badge variant="secondary" className="flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI-Powered</Badge>
-            <Badge variant="outline" className="flex items-center gap-1"><Shield className="h-3 w-3" /> Confidential</Badge>
-            <Badge variant="outline" className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Crisis Detection</Badge>
+        <div className="mb-6 border-2 border-black bg-[#FFE17C] p-5 shadow-[4px_4px_0_#000] sm:p-7">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <span className="text-xs font-black uppercase tracking-[.18em]">Your support space</span>
+              <h1 className="mt-2 text-4xl font-black sm:text-5xl">TALK WITH ZENITH</h1>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary" className="border border-black bg-white text-black"><Sparkles className="mr-1 h-3 w-3" /> AI companion</Badge>
+              <Badge variant="outline" className="border border-black bg-[#B7C6C2] text-black"><Shield className="mr-1 h-3 w-3" /> Support, not diagnosis</Badge>
+            </div>
           </div>
         </div>
 
         {/* Chat Card */}
-        <Card className="mb-4">
-          <CardHeader className="bg-gradient-to-r from-background to-background/80 p-4">
-            <CardTitle>ImpactAI Chat</CardTitle>
+        <Card className="mb-5 overflow-hidden border-2 border-black rounded-[10px] shadow-[8px_8px_0_#000]">
+          <CardHeader className="border-b-2 border-black bg-[#171E19] p-4 text-white">
+            <div className="flex items-center justify-between">
+              <CardTitle className="!text-white">ZENITH / NEW CONVERSATION</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-2 border-white bg-transparent text-white"
+                onClick={() => { setMessages([]); setSessionId(null); }}
+              >
+                Reset
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-96 p-4">
@@ -158,7 +169,7 @@ const AIChat = () => {
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[75%] rounded-2xl px-4 py-3 ${msg.sender === 'user'
-                      ? 'bg-primary text-primary-foreground rounded-br-md'
+                      ? 'border-2 border-black bg-[#FFE17C] text-black rounded-br-md'
                       : `border-l-4 ${getSeverityColor(msg.severity)} rounded-bl-md`}`}>
                       {msg.sender === 'ai' && msg.severity && msg.severity !== 'low' && (
                         <div className="flex items-center space-x-1 mb-1.5">
@@ -196,26 +207,25 @@ const AIChat = () => {
             </ScrollArea>
 
             {/* Input */}
-            <div className="flex space-x-2 p-4 border-t border-border/40">
+            <div className="flex gap-2 border-t-2 border-black p-4 bg-[#F7F7F2]">
               <Input
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Type a message..."
+                placeholder="Share what is on your mind…"
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                className="brutal-input"
               />
-              <Button onClick={handleSendMessage} disabled={!inputText.trim() || isTyping}>
-                <Send className="h-4 w-4" />
+              <Button className="brutal-button h-12 w-12 p-0" onClick={handleSendMessage} disabled={!inputText.trim() || isTyping} aria-label="Send message">
+                <Send className="h-5 w-5" />
               </Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Crisis Support */}
-        <Card className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 p-4">
-          <h3 className="font-bold text-red-800 dark:text-red-300 mb-2">Emergency Support</h3>
-          <p className="text-red-700 dark:text-red-400 text-sm mb-4">
-            If you are in crisis or having thoughts of self-harm, seek help immediately.
-          </p>
+        <Card className="border-2 border-black bg-white p-5 shadow-[4px_4px_0_#000]">
+          <h3 className="mb-2 border-l-4 border-red-600 pl-3 font-black text-red-800">Emergency support</h3>
+          <p className="mb-4 text-sm font-medium text-red-800">If you are in immediate danger or having thoughts of self-harm, seek help now.</p>
           <div className="flex flex-wrap gap-2">
             <Button
               variant="destructive"

@@ -8,7 +8,7 @@ import '@/styles/reading-mode.css';
 
 const Layout = () => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#F7F7F2]">
       <Header />
       <main className="flex-1">
         <Outlet />

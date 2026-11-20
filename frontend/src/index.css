@@ -141,6 +141,18 @@ All colors MUST be HSL. Calming, accessible, stigma-free design.
 
     --radius: 0.5rem;
     --radius-lg: 0.75rem;
+
+    /* ImpactAI neo-brutalist wellness system */
+    --brand-yellow: #FFE17C;
+    --brand-charcoal: #171E19;
+    --brand-sage: #B7C6C2;
+    --brand-white: #FFFFFF;
+    --brand-black: #000000;
+    --radius-brutal: 10px;
+    --shadow-brutal: 4px 4px 0 #000;
+    --shadow-brutal-lg: 8px 8px 0 #000;
+    --font-sans: 'Satoshi', 'Avenir Next', 'Segoe UI', sans-serif;
+    --font-display: 'Cabinet Grotesk', 'Arial Black', 'Segoe UI', sans-serif;
   }
 
   .dark {
@@ -294,5 +306,62 @@ All colors MUST be HSL. Calming, accessible, stigma-free design.
     h3 {
       font-size: var(--font-size-lg);
     }
+  }
+
+  /* ImpactAI neo-brutalist wellness system */
+  :root {
+    --brand-yellow: #FFE17C;
+    --brand-charcoal: #171E19;
+    --brand-sage: #B7C6C2;
+    --brand-white: #FFFFFF;
+    --brand-black: #000000;
+    --radius-brutal: 10px;
+    --shadow-brutal: 4px 4px 0 #000;
+    --shadow-brutal-lg: 8px 8px 0 #000;
+    --font-sans: 'Satoshi', 'Avenir Next', 'Segoe UI', sans-serif;
+    --font-display: 'Cabinet Grotesk', 'Arial Black', 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--brand-white);
+    color: var(--brand-charcoal);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body, button, input, textarea, select { font-family: var(--font-sans); }
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--brand-charcoal) !important;
+    font-family: var(--font-display);
+    letter-spacing: -0.035em;
+  }
+
+  .impact-shell { width: 100%; max-width: 1280px; margin-inline: auto; padding-inline: clamp(1rem, 4vw, 3rem); }
+  .brutal-card { border: 2px solid #000; border-radius: var(--radius-brutal); background: #fff; box-shadow: var(--shadow-brutal); }
+  .brutal-card-lg { border: 2px solid #000; border-radius: 14px; background: #fff; box-shadow: var(--shadow-brutal-lg); }
+  .brutal-yellow { background: var(--brand-yellow); }
+  .brutal-sage { background: var(--brand-sage); }
+  .brutal-button {
+    min-height: 44px;
+    border: 2px solid #000 !important;
+    border-radius: 8px !important;
+    background: var(--brand-yellow) !important;
+    color: #000 !important;
+    box-shadow: var(--shadow-brutal);
+    font-weight: 800 !important;
+    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  }
+  .brutal-button:hover { transform: translate(4px, 4px); box-shadow: 0 0 0 #000; }
+  .brutal-button:focus-visible { outline: 3px solid #2677ff; outline-offset: 3px; }
+  .brutal-button:disabled { cursor: not-allowed; opacity: .55; transform: none; }
+  .brutal-outline { border: 2px solid #000 !important; border-radius: 8px; background: #fff; color: #000; box-shadow: var(--shadow-brutal); }
+  .brutal-input { min-height: 48px; border: 2px solid #000 !important; border-radius: 8px !important; background: #fff !important; }
+  .brutal-input:focus-visible { outline: 3px solid #2677ff; outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
 }
