@@ -18,23 +18,24 @@ export default {
       },
     },
     fontFamily: {
-      sans: ['Inter', 'sans-serif'],
+      sans: ['DM Sans Variable', 'Avenir Next', 'Segoe UI', 'sans-serif'],
+      display: ['Manrope Variable', 'Arial Black', 'Segoe UI', 'sans-serif'],
     },
     extend: {
       colors: {
-        // ImpactAI Calming Mental Wellness Palette
+        // ImpactAI neo-brutalist wellness palette
         primary: {
-          DEFAULT: '#2F7A6D', // Muted Teal
-          foreground: '#FFFFFF',
-          light: '#3D9485',
-          glow: '#5EB3A4',
-          variant: '#246157',
+          DEFAULT: '#FFE17C',
+          foreground: '#171E19',
+          light: '#FFF0A8',
+          glow: '#FFE17C',
+          variant: '#E9CF65',
         },
         accent: {
-          DEFAULT: '#4A90E2', // Soft Blue
-          foreground: '#FFFFFF',
-          light: '#6BA5E7',
-          variant: '#357ABD',
+          DEFAULT: '#B7C6C2',
+          foreground: '#171E19',
+          light: '#CED7D4',
+          variant: '#9FAFAA',
         },
         cta: {
           DEFAULT: '#FFB400', // Warm Amber

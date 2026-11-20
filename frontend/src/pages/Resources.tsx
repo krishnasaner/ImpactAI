@@ -590,7 +590,7 @@ const Resources = () => {
 
   return (
     <PageTransition>
-      <div className={`container mx-auto px-4 py-8 space-y-8 ${readingModeClasses} overflow-hidden`}>
+      <div className={`min-h-screen bg-[#F7F6F0] px-4 py-8 space-y-8 ${readingModeClasses} overflow-hidden`}>
         {/* Header */}
         <ScrollFadeIn yOffset={32}>
           <div className="text-center space-y-4 relative">

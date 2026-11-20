@@ -10,7 +10,7 @@ import PageTransition from '@/components/ui/PageTransition';
 const About = () => {
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#F7F6F0]">
         <Header />
         <div className="h-20" />
 

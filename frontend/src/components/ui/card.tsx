@@ -7,11 +7,8 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     <div
       ref={ref}
       className={cn(
-        'group relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-glass-card transition-all duration-300 ease-out',
-        'hover:shadow-floating hover:scale-[1.02] hover:-translate-y-1 hover:border-white/20 hover:bg-white/8',
-        'dark:border-white/5 dark:bg-black/5 dark:shadow-glass-card dark:hover:border-white/10 dark:hover:bg-black/8',
-        'before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/10 before:to-transparent before:opacity-0 before:transition-opacity before:duration-300',
-        'hover:before:opacity-100',
+        'relative rounded-[10px] border-2 border-black bg-white shadow-[4px_4px_0_#000] transition-transform duration-150',
+        'hover:-translate-y-1 hover:translate-x-1',
         className
       )}
       {...props}
@@ -40,7 +37,7 @@ const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HT
     <h3
       ref={ref}
       className={cn(
-        'text-2xl font-bold leading-tight tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent',
+        'text-2xl font-black leading-tight tracking-[-0.035em] text-[#171E19]',
         'group-hover:from-primary group-hover:to-primary/80 transition-all duration-300',
         className
       )}

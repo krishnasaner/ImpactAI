@@ -93,7 +93,7 @@ async def security_middleware(request: Request, call_next):
         "font-src 'self' https://fonts.gstatic.com; "
         "script-src 'self' 'unsafe-inline'; "
         "frame-src 'self' https://accounts.google.com; "
-        "connect-src 'self' http://localhost:5000 http://127.0.0.1:5000 http://localhost:8080 http://127.0.0.1:8080 http://localhost:5173 http://127.0.0.1:5173; "
+        "connect-src 'self' http://localhost:5000 http://127.0.0.1:5000 http://localhost:8000 http://127.0.0.1:8000 http://localhost:8001 http://127.0.0.1:8001 http://localhost:8080 http://127.0.0.1:8080 http://localhost:8081 http://127.0.0.1:8081 http://localhost:8082 http://127.0.0.1:8082 http://localhost:5173 http://127.0.0.1:5173; "
         "object-src 'none'; base-uri 'self'; frame-ancestors 'none';"
     )
     response.headers["Cross-Origin-Opener-Policy"] = "same-origin"

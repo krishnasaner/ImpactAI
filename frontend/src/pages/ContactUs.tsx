@@ -89,7 +89,7 @@ export default function ContactUs() {
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white' : 'bg-white text-slate-900'}`}>
+    <div className="min-h-screen bg-[#F7F6F0] text-[#171E19]">
       <Header />
       <div className="h-20" />
 

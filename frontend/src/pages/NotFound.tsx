@@ -3,93 +3,57 @@ import { Home, MessageCircle, HelpCircle } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-      {/* Header */}
-      <header className="absolute top-0 left-0 right-0 p-6 z-10">
-        <Link to="/" className="inline-block">
-          <img src="/ImpactAI_logo.png" alt="Impact AI Logo" className="h-12 w-auto object-contain" />
+    <div className="min-h-screen bg-[#FFE17C] dot-pattern text-[#171E19]">
+      <header className="p-5">
+        <Link
+          to="/"
+          className="inline-block border-2 border-black bg-white p-2 shadow-[4px_4px_0_#000]"
+        >
+          <img
+            src="/ImpactAI_logo.png"
+            alt="ImpactAI"
+            className="h-10 w-auto"
+          />
         </Link>
       </header>
-
-      {/* Main Content */}
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="max-w-2xl w-full text-center">
-          {/* 404 Visual */}
-          <div className="mb-8">
-            <h1 className="text-[150px] md:text-[200px] font-bold leading-none bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-              404
-            </h1>
-          </div>
-
-          {/* Message */}
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Page Not Found</h2>
-          <p className="text-lg text-slate-400 mb-8 max-w-md mx-auto">
-            We couldn't find the page you're looking for. It might have been moved or doesn't exist.
+      <main className="impact-shell flex min-h-[calc(100vh-80px)] items-center py-10">
+        <div className="brutal-card-lg max-w-3xl p-7 sm:p-12">
+          <p className="text-sm font-black uppercase tracking-[.18em]">
+            404 / wrong turn
           </p>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <h1 className="mt-3 text-[clamp(5rem,18vw,10rem)] leading-[.78]">
+            404
+          </h1>
+          <h2 className="mt-8 text-4xl">This page is not here.</h2>
+          <p className="mt-3 max-w-xl text-lg text-[#171E19]/70">
+            The link may have moved. You can return to ImpactAI or go straight to
+            support.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               to="/"
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 shadow-lg shadow-cyan-500/50"
+              className="brutal-button inline-flex items-center justify-center px-6 py-3"
             >
-              <Home className="w-5 h-5" />
-              Back to Home
+              <Home className="h-4 w-4" />
+              Back home
+            </Link>
+            <Link
+              to="/app/chat"
+              className="brutal-outline inline-flex items-center justify-center px-6 py-3"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Talk with Zenith
             </Link>
             <Link
               to="/contact"
-              className="flex items-center gap-2 px-6 py-3 bg-slate-700 rounded-lg font-medium hover:bg-slate-600 transition-all duration-300"
+              className="brutal-outline inline-flex items-center justify-center px-6 py-3"
             >
-              <HelpCircle className="w-5 h-5" />
-              Contact Support
+              <HelpCircle className="h-4 w-4" />
+              Contact support
             </Link>
           </div>
-
-          {/* Helpful Links */}
-          <div className="mt-12 pt-8 border-t border-slate-700">
-            <p className="text-sm text-slate-400 mb-4">Looking for something specific?</p>
-            <div className="flex flex-wrap gap-3 justify-center items-center">
-              <Link to="/" className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors">
-                Home
-              </Link>
-              <span className="text-slate-600">•</span>
-              <Link
-                to="/app/booking"
-                className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors"
-              >
-                Counseling
-              </Link>
-              <span className="text-slate-600">•</span>
-              <Link
-                to="/app/resources"
-                className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors"
-              >
-                Resources
-              </Link>
-              <span className="text-slate-600">•</span>
-              <Link
-                to="/app/forum"
-                className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors"
-              >
-                Community
-              </Link>
-              <span className="text-slate-600">•</span>
-              <Link
-                to="/app/chat"
-                className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors"
-              >
-                Zenith AI Chat
-              </Link>
-            </div>
-          </div>
         </div>
-      </div>
-
-      {/* Decorative Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-20 right-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-      </div>
+      </main>
     </div>
   );
 }

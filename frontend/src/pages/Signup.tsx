@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, Mail, Lock, User, Shield, GraduationCap } from 'lucide-react';
+import { Heart, Mail, Lock, User, Shield, GraduationCap, Eye, EyeOff } from 'lucide-react';
 import PageTransition from '@/components/ui/PageTransition';
 import ScrollFadeIn from '@/components/ui/ScrollFadeIn';
 import { FaGoogle } from 'react-icons/fa';
@@ -33,6 +33,8 @@ const Signup = () => {
   const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
   const [isCheckingGoogleAuth, setIsCheckingGoogleAuth] = useState(true);
   const [rememberMe, setRememberMe] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const getDashboardRoute = (role: string) =>
     role === 'admin' || role === 'counselor' ? '/app/admin-dashboard' : '/app/student-dashboard';
@@ -186,7 +188,7 @@ const Signup = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#FFE17C] dot-pattern flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           {/* Logo & tagline */}
           <ScrollFadeIn yOffset={20}>
@@ -204,7 +206,7 @@ const Signup = () => {
 
           {/* Card */}
           <ScrollFadeIn yOffset={16} delay={0.07}>
-            <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="brutal-card-lg bg-white p-5 sm:p-8">
               {/* Card header */}
               <div className="text-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Create Your Account</h1>
@@ -221,7 +223,7 @@ const Signup = () => {
                       key={role}
                       value={role}
                       onClick={() => handleRoleChange(role)}
-                      className="flex items-center gap-1.5 rounded-md data-[state=active]:bg-[#2F7A6D] data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
+                      className="flex items-center gap-1.5 rounded-[8px] border-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-[#FFE17C] data-[state=active]:text-black data-[state=active]:shadow-[3px_3px_0_#000] transition-all"
                     >
                       {getRoleIcon(role)}
                       <span className="hidden sm:inline capitalize">{role}</span>
@@ -231,7 +233,7 @@ const Signup = () => {
 
                 {(['student', 'counselor', 'admin'] as const).map((role) => (
                   <TabsContent key={role} value={role} className="space-y-4">
-                    <div className="text-center p-3 bg-teal-50 rounded-lg border border-teal-100">
+                    <div className="text-center p-3 bg-[#B7C6C2] rounded-[8px] border-2 border-black">
                       <div className="flex items-center justify-center space-x-2 mb-1 text-[#2F7A6D]">
                         {getRoleIcon(role)}
                         <span className="font-medium capitalize">{role} Portal</span>
@@ -259,7 +261,7 @@ const Signup = () => {
                       onChange={(e) =>
                         setCredentials({ ...credentials, email: e.target.value })
                       }
-                      className="pl-10 border-gray-200 rounded-lg focus:border-[#2F7A6D] focus:ring-2 focus:ring-[#2F7A6D]/20"
+                      className="pl-10 brutal-input"
                       required
                     />
                   </div>
@@ -272,15 +274,23 @@ const Signup = () => {
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Create a strong password"
                       value={credentials.password}
                       onChange={(e) =>
                         setCredentials({ ...credentials, password: e.target.value })
                       }
-                      className="pl-10 border-gray-200 rounded-lg focus:border-[#2F7A6D] focus:ring-2 focus:ring-[#2F7A6D]/20"
+                      className="pl-10 pr-12 brutal-input"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((value) => !value)}
+                      className="absolute right-3 top-3 text-[#171E19]/60 hover:text-[#171E19]"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                   <p className="text-xs text-gray-400">
                     Min. 12 chars · uppercase · lowercase · number · special character
@@ -300,7 +310,7 @@ const Signup = () => {
                       onChange={(e) =>
                         setCredentials({ ...credentials, confirmPassword: e.target.value })
                       }
-                      className="pl-10 border-gray-200 rounded-lg focus:border-[#2F7A6D] focus:ring-2 focus:ring-[#2F7A6D]/20"
+                      className="pl-10 brutal-input"
                       required
                     />
                   </div>
@@ -323,7 +333,7 @@ const Signup = () => {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full py-3 bg-[#2F7A6D] hover:bg-teal-700 text-white rounded-lg font-semibold transition-colors"
+                  className="brutal-button w-full"
                   disabled={loading}
                 >
                   {loading ? 'Signing Up...' : 'Create Account'}
@@ -361,8 +371,7 @@ const Signup = () => {
           {/* Trust signals */}
           <ScrollFadeIn delay={0.11}>
             <div className="text-center space-y-1 text-xs text-gray-400">
-              <p>🔒 End-to-end encrypted · HIPAA compliant · Stigma-free</p>
-              <p>Confidential support available 24/7</p>
+              <p>Zenith provides support, not diagnosis or emergency care.</p>
             </div>
           </ScrollFadeIn>
         </div>

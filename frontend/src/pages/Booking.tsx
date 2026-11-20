@@ -2077,7 +2077,7 @@ const Booking = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-6 min-h-screen">
+    <div className="container mx-auto px-4 py-6 min-h-screen bg-[#F7F6F0]">
       {/* Header */}
       <div className="text-center space-y-4 mb-6">
         <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">

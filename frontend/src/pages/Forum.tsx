@@ -573,7 +573,7 @@ const Forum = () => {
   };
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8 max-w-6xl overflow-hidden">
+    <div className="min-h-screen bg-[#F7F6F0] px-3 sm:px-4 lg:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8 max-w-6xl mx-auto overflow-hidden">
       {/* Enhanced Header */}
       <div className="text-center space-y-4 fade-in">
         <div className="flex items-center justify-center space-x-3 mb-4 group">

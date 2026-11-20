@@ -1,450 +1,168 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
+import { Pause, Play, RotateCcw, Wind } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Wind,
-  Play,
-  Pause,
-  RotateCcw,
-  Volume2,
-  VolumeX,
-  Timer,
-  Heart,
-  CheckCircle,
-} from 'lucide-react';
 
-interface BreathingExercise {
-  id: string;
+type ExerciseId = '478' | 'box' | 'coherent' | 'bellows';
+type Phase = 'inhale' | 'hold' | 'exhale' | 'holdEmpty';
+
+interface Exercise {
+  id: ExerciseId;
   name: string;
   description: string;
-  pattern: {
-    inhale: number;
-    hold: number;
-    exhale: number;
-    holdEmpty?: number;
-  };
-  totalDuration: number; // in minutes
-  benefits: string[];
+  pattern: { inhale: number; hold: number; exhale: number; holdEmpty?: number };
+  minutes: number;
 }
 
-const BREATHING_EXERCISES: BreathingExercise[] = [
-  {
-    id: '4-7-8',
-    name: '4-7-8 Breathing',
-    description: 'A calming technique that helps reduce anxiety and promote sleep',
-    pattern: { inhale: 4, hold: 7, exhale: 8 },
-    totalDuration: 3,
-    benefits: ['Reduces anxiety', 'Improves sleep', 'Calms nervous system'],
-  },
-  {
-    id: 'box',
-    name: 'Box Breathing',
-    description: 'Equal-count breathing used by Navy SEALs for stress management',
-    pattern: { inhale: 4, hold: 4, exhale: 4, holdEmpty: 4 },
-    totalDuration: 5,
-    benefits: ['Reduces stress', 'Improves focus', 'Enhances performance'],
-  },
-  {
-    id: 'coherent',
-    name: 'Coherent Breathing',
-    description: 'Simple 5-second in, 5-second out pattern for balance',
-    pattern: { inhale: 5, hold: 0, exhale: 5 },
-    totalDuration: 10,
-    benefits: ['Balances nervous system', 'Improves heart rate variability', 'Reduces stress'],
-  },
-  {
-    id: 'bellows',
-    name: 'Bellows Breath',
-    description: 'Energizing breath to increase alertness and focus',
-    pattern: { inhale: 2, hold: 0, exhale: 2 },
-    totalDuration: 2,
-    benefits: ['Increases energy', 'Improves alertness', 'Enhances focus'],
-  },
+const exercises: Exercise[] = [
+  { id: '478', name: '4-7-8 Breathing', description: 'A steady pattern for settling down.', pattern: { inhale: 4, hold: 7, exhale: 8 }, minutes: 3 },
+  { id: 'box', name: 'Box Breathing', description: 'Even counts for focus and composure.', pattern: { inhale: 4, hold: 4, exhale: 4, holdEmpty: 4 }, minutes: 5 },
+  { id: 'coherent', name: 'Coherent Breathing', description: 'A simple, balanced five-count rhythm.', pattern: { inhale: 5, hold: 0, exhale: 5 }, minutes: 10 },
+  { id: 'bellows', name: 'Bellows Breath', description: 'An energising two-count rhythm.', pattern: { inhale: 2, hold: 0, exhale: 2 }, minutes: 2 },
 ];
 
 const BreathingExercises = () => {
-  const [selectedExercise, setSelectedExercise] = useState<BreathingExercise>(
-    BREATHING_EXERCISES[0]
-  );
-  const [isActive, setIsActive] = useState(false);
-  const [currentPhase, setCurrentPhase] = useState<'inhale' | 'hold' | 'exhale' | 'holdEmpty'>(
-    'inhale'
-  );
-  const [phaseProgress, setPhaseProgress] = useState(0);
-  const [cycleCount, setCycleCount] = useState(0);
-  const [totalProgress, setTotalProgress] = useState(0);
-  const [soundEnabled, setSoundEnabled] = useState(false);
-  const [sessionComplete, setSessionComplete] = useState(false);
-
-  const totalCycles =
-    (selectedExercise.totalDuration * 60) /
-    (selectedExercise.pattern.inhale +
-      selectedExercise.pattern.hold +
-      selectedExercise.pattern.exhale +
-      (selectedExercise.pattern.holdEmpty || 0));
+  const [exercise, setExercise] = useState(exercises[0]);
+  const [active, setActive] = useState(false);
+  const [phase, setPhase] = useState<Phase>('inhale');
+  const [phaseElapsed, setPhaseElapsed] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const totalSeconds = exercise.minutes * 60;
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    if (!active) return;
+    const timer = window.setInterval(() => {
+      setElapsedSeconds((current) => {
+        if (current + 1 >= totalSeconds) {
+          setActive(false);
+          setPhaseElapsed(0);
+          return totalSeconds;
+        }
+        return current + 1;
+      });
+      setPhaseElapsed((current) => {
+        const duration = exercise.pattern[phase];
+        if (duration <= 0) return 0;
+        if (current + 1 >= duration) {
+          const phases: Phase[] = exercise.pattern.holdEmpty
+            ? ['inhale', 'hold', 'exhale', 'holdEmpty']
+            : exercise.pattern.hold > 0
+              ? ['inhale', 'hold', 'exhale']
+              : ['inhale', 'exhale'];
+          setPhase(phases[(phases.indexOf(phase) + 1) % phases.length]);
+          return 0;
+        }
+        return current + 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [active, exercise, phase, totalSeconds]);
 
-    if (isActive && !sessionComplete) {
-      interval = setInterval(() => {
-        setPhaseProgress((prev) => {
-          const currentPhaseDuration = selectedExercise.pattern[currentPhase];
-
-          if (prev >= 100) {
-            const phases: Array<keyof typeof selectedExercise.pattern> = [
-              'inhale',
-              'hold',
-              'exhale',
-            ];
-            if (selectedExercise.pattern.holdEmpty) {
-              phases.push('holdEmpty');
-            }
-
-            const currentIndex = phases.indexOf(currentPhase);
-            const nextIndex = (currentIndex + 1) % phases.length;
-
-            if (nextIndex === 0) {
-              setCycleCount((prev) => {
-                const newCount = prev + 1;
-                const newTotalProgress = (newCount / totalCycles) * 100;
-                setTotalProgress(newTotalProgress);
-
-                if (newCount >= totalCycles) {
-                  setSessionComplete(true);
-                  setIsActive(false);
-                }
-
-                return newCount;
-              });
-            }
-
-            setCurrentPhase(phases[nextIndex]);
-            return 0;
-          }
-
-          return prev + 100 / ((currentPhaseDuration * 1000) / 100);
-        });
-      }, 100);
-    }
-
-    return () => clearInterval(interval);
-  }, [isActive, currentPhase, selectedExercise, totalCycles, sessionComplete]);
-
-  const startExercise = () => {
-    setIsActive(true);
-    setSessionComplete(false);
-    setCurrentPhase('inhale');
-    setPhaseProgress(0);
-    setCycleCount(0);
-    setTotalProgress(0);
+  const reset = () => {
+    setActive(false);
+    setPhase('inhale');
+    setPhaseElapsed(0);
+    setElapsedSeconds(0);
   };
 
-  const pauseExercise = () => {
-    setIsActive(false);
+  const selectExercise = (id: ExerciseId) => {
+    setExercise(exercises.find((item) => item.id === id) ?? exercises[0]);
+    reset();
   };
 
-  const resetExercise = () => {
-    setIsActive(false);
-    setSessionComplete(false);
-    setCurrentPhase('inhale');
-    setPhaseProgress(0);
-    setCycleCount(0);
-    setTotalProgress(0);
-  };
-
-  const getPhaseInstruction = () => {
-    switch (currentPhase) {
-      case 'inhale':
-        return 'Breathe In';
-      case 'hold':
-        return 'Hold';
-      case 'exhale':
-        return 'Breathe Out';
-      case 'holdEmpty':
-        return 'Hold Empty';
-      default:
-        return 'Ready';
-    }
-  };
-
-  const getPhaseColor = () => {
-    switch (currentPhase) {
-      case 'inhale':
-        return 'text-blue-600';
-      case 'hold':
-        return 'text-yellow-600';
-      case 'exhale':
-        return 'text-[#2F7A6D]';
-      case 'holdEmpty':
-        return 'text-purple-600';
-      default:
-        return 'text-gray-500';
-    }
-  };
-
-  const getCircleScale = () => {
-    switch (currentPhase) {
-      case 'inhale':
-        return `scale(${1 + (phaseProgress / 100) * 0.5})`;
-      case 'exhale':
-        return `scale(${1.5 - (phaseProgress / 100) * 0.5})`;
-      default:
-        return 'scale(1.5)';
-    }
-  };
+  const phaseLabel =
+    phase === 'inhale'
+      ? 'Breathe in'
+      : phase === 'exhale'
+        ? 'Breathe out'
+        : phase === 'holdEmpty'
+          ? 'Rest empty'
+          : 'Hold';
+  const phaseDuration = exercise.pattern[phase];
+  const remaining = phaseDuration ? Math.max(0, phaseDuration - phaseElapsed) : 0;
+  const progress = totalSeconds ? (elapsedSeconds / totalSeconds) * 100 : 0;
+  const scale =
+    phase === 'inhale'
+      ? 0.75 + (phaseElapsed / Math.max(1, phaseDuration)) * 0.25
+      : phase === 'exhale'
+        ? 1 - (phaseElapsed / Math.max(1, phaseDuration)) * 0.25
+        : 1;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-teal-50 mb-2">
-            <Wind className="h-7 w-7 text-[#2F7A6D]" />
+    <main className="min-h-[calc(100vh-4rem)] bg-[#F7F6F0]">
+      <div className="mx-auto max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
+        <header className="flex flex-col justify-between gap-4 border-b-2 border-black pb-5 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[.16em]">Mindful pause</p>
+            <h1 className="mt-2 text-[clamp(2.5rem,6vw,4.5rem)] leading-none">BREATH WITH CARE.</h1>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Breathing Exercises</h1>
-          <p className="text-gray-500 max-w-2xl mx-auto">
-            Take a moment to reconnect with your breath. These guided exercises help reduce stress,
-            improve focus, and promote overall well-being.
-          </p>
-        </div>
+          <div className="flex items-center gap-2 border-2 border-black bg-white px-3 py-2 text-sm font-bold shadow-[4px_4px_0_#000]">
+            <Wind className="h-4 w-4" />
+            {exercise.minutes} minute session
+          </div>
+        </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Exercise Selection */}
-          <Card className="bg-white border border-gray-100 rounded-xl shadow-sm lg:col-span-1">
-            <CardHeader>
-              <CardTitle className="text-lg text-gray-800">Choose Exercise</CardTitle>
-              <CardDescription>
-                Select a breathing pattern that suits your current needs
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <Select
-                value={selectedExercise.id}
-                onValueChange={(value) => {
-                  const exercise = BREATHING_EXERCISES.find((ex) => ex.id === value);
-                  if (exercise) {
-                    setSelectedExercise(exercise);
-                    resetExercise();
-                  }
-                }}
-              >
-                <SelectTrigger className="border-gray-200 focus:border-[#2F7A6D] focus:ring-[#2F7A6D]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {BREATHING_EXERCISES.map((exercise) => (
-                    <SelectItem key={exercise.id} value={exercise.id}>
-                      {exercise.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <p className="text-sm text-gray-500">{selectedExercise.description}</p>
-
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-700 text-sm">Pattern</h4>
-                <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Inhale:</span>
-                    <span className="font-medium text-blue-600">{selectedExercise.pattern.inhale}s</span>
-                  </div>
-                  {selectedExercise.pattern.hold > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Hold:</span>
-                      <span className="font-medium text-yellow-600">{selectedExercise.pattern.hold}s</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Exhale:</span>
-                    <span className="font-medium text-[#2F7A6D]">{selectedExercise.pattern.exhale}s</span>
-                  </div>
-                  {selectedExercise.pattern.holdEmpty && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Hold Empty:</span>
-                      <span className="font-medium text-purple-600">{selectedExercise.pattern.holdEmpty}s</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="font-semibold text-gray-700 text-sm">Benefits</h4>
-                <ul className="space-y-1.5">
-                  {selectedExercise.benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-center space-x-2 text-sm text-gray-600">
-                      <div className="w-1.5 h-1.5 bg-[#2F7A6D] rounded-full flex-shrink-0" />
-                      <span>{benefit}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <Timer className="h-4 w-4" />
-                  <span>{selectedExercise.totalDuration} minutes</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSoundEnabled(!soundEnabled)}
-                  className="text-gray-500 hover:text-[#2F7A6D]"
+        <div className="mt-6 grid gap-5 lg:grid-cols-[280px_1fr]">
+          <aside className="border-2 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
+            <p className="text-xs font-black uppercase tracking-[.14em]">Choose a rhythm</p>
+            <div className="mt-4 space-y-2">
+              {exercises.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => selectExercise(item.id)}
+                  className={`w-full border-2 px-4 py-3 text-left transition-colors ${
+                    exercise.id === item.id
+                      ? 'border-black bg-[#FFE17C] shadow-[3px_3px_0_#000]'
+                      : 'border-transparent hover:border-black hover:bg-[#F7F6F0]'
+                  }`}
                 >
-                  {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                  <span className="block font-black">{item.name}</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-[#171E19]/70">{item.description}</span>
+                </button>
+              ))}
+            </div>
+          </aside>
+
+          <section className="dot-pattern flex min-h-[520px] flex-col items-center justify-center border-2 border-black bg-[#171E19] p-5 text-white shadow-[8px_8px_0_#000] sm:p-8">
+            <div
+              className="flex h-72 w-72 max-w-[70vw] items-center justify-center rounded-full border-[3px] border-black bg-[#B7C6C2] text-[#171E19] shadow-[8px_8px_0_#FFE17C] transition-transform duration-1000"
+              style={{ transform: `scale(${scale})` }}
+            >
+              <div className="text-center">
+                <p className="text-xs font-black uppercase tracking-[.18em]">{active ? 'Current phase' : 'Ready'}</p>
+                <h2 className="mt-3 text-4xl !text-[#171E19]">{active ? phaseLabel : 'Begin'}</h2>
+                {active && <p className="mt-2 text-2xl font-black">{remaining}</p>}
+              </div>
+            </div>
+
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+              {!active ? (
+                <Button type="button" onClick={() => setActive(true)} className="brutal-button h-12 px-7">
+                  <Play className="h-5 w-5" /> Start
                 </Button>
+              ) : (
+                <Button type="button" variant="outline" onClick={() => setActive(false)} className="h-12 border-white bg-white px-7 text-[#171E19]">
+                  <Pause className="h-5 w-5" /> Pause
+                </Button>
+              )}
+              <Button type="button" variant="outline" onClick={reset} className="h-12 border-white bg-transparent px-7 text-white">
+                <RotateCcw className="h-5 w-5" /> Reset
+              </Button>
+            </div>
+
+            <div className="mt-8 w-full max-w-xl">
+              <div className="mb-2 flex justify-between text-xs font-bold">
+                <span>Session progress</span>
+                <span>{elapsedSeconds}s / {totalSeconds}s</span>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Breathing Animation */}
-          <Card className="bg-white border border-gray-100 rounded-xl shadow-sm lg:col-span-2">
-            <CardContent className="p-8">
-              <div className="flex flex-col items-center space-y-8">
-                {/* Breathing Circle */}
-                <div className="relative flex items-center justify-center w-64 h-64">
-                  {/* Outer glow ring */}
-                  <div
-                    className="absolute w-56 h-56 rounded-full bg-teal-100 opacity-30 transition-all duration-1000 ease-in-out"
-                    style={{ transform: getCircleScale() }}
-                  />
-                  {/* Main animated circle */}
-                  <div
-                    className="w-32 h-32 rounded-full transition-transform duration-1000 ease-in-out flex items-center justify-center"
-                    style={{
-                      transform: getCircleScale(),
-                      background: 'radial-gradient(circle, rgba(74,144,226,0.3) 0%, rgba(47,122,109,0.3) 100%)',
-                    }}
-                  >
-                    <div
-                      className="w-16 h-16 rounded-full"
-                      style={{
-                        background: 'linear-gradient(135deg, #4A90E2 0%, #2F7A6D 100%)',
-                        opacity: 0.85,
-                      }}
-                    />
-                  </div>
-
-                  {/* Progress Ring */}
-                  <svg className="absolute w-64 h-64 -rotate-90">
-                    <circle
-                      cx="128"
-                      cy="128"
-                      r="120"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-gray-100"
-                    />
-                    <circle
-                      cx="128"
-                      cy="128"
-                      r="120"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 120}`}
-                      strokeDashoffset={`${2 * Math.PI * 120 * (1 - phaseProgress / 100)}`}
-                      className={`transition-all duration-100 ${getPhaseColor()}`}
-                    />
-                  </svg>
-                </div>
-
-                {/* Phase Instruction */}
-                <div className="text-center space-y-1">
-                  {!isActive && !sessionComplete ? (
-                    <h2 className="text-3xl font-bold text-gray-400">Ready</h2>
-                  ) : (
-                    <h2
-                      className={`text-3xl font-bold transition-colors duration-300 ${getPhaseColor()}`}
-                    >
-                      {getPhaseInstruction()}
-                    </h2>
-                  )}
-                  <p className="text-gray-400 text-sm">
-                    {isActive ? `${selectedExercise.pattern[currentPhase]} seconds` : 'Press start to begin'}
-                  </p>
-                </div>
-
-                {/* Controls */}
-                <div className="flex items-center space-x-3">
-                  {!isActive && !sessionComplete ? (
-                    <Button
-                      onClick={startExercise}
-                      size="lg"
-                      className="bg-[#2F7A6D] hover:bg-teal-700 text-white rounded-lg px-8 py-2 font-medium"
-                    >
-                      <Play className="h-5 w-5 mr-2" />
-                      Start
-                    </Button>
-                  ) : isActive ? (
-                    <Button
-                      onClick={pauseExercise}
-                      variant="outline"
-                      size="lg"
-                      className="border-[#2F7A6D] text-[#2F7A6D] hover:bg-teal-50 rounded-lg px-8"
-                    >
-                      <Pause className="h-5 w-5 mr-2" />
-                      Pause
-                    </Button>
-                  ) : null}
-
-                  <Button
-                    onClick={resetExercise}
-                    variant="outline"
-                    size="lg"
-                    className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg"
-                  >
-                    <RotateCcw className="h-5 w-5 mr-2" />
-                    Reset
-                  </Button>
-                </div>
-
-                {/* Progress */}
-                <div className="w-full max-w-md space-y-2">
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span>Session Progress</span>
-                    <span>
-                      {cycleCount} of {Math.ceil(totalCycles)} cycles
-                    </span>
-                  </div>
-                  <Progress value={totalProgress} className="h-2" />
-                </div>
-
-                {/* Session Complete */}
-                {sessionComplete && (
-                  <div className="w-full max-w-md bg-teal-50 border border-teal-200 rounded-xl p-5 text-center">
-                    <CheckCircle className="h-10 w-10 text-[#2F7A6D] mx-auto mb-3" />
-                    <h3 className="font-semibold text-[#2F7A6D] text-lg">Session Complete!</h3>
-                    <p className="text-sm text-teal-700 mt-1">
-                      Great job! You've completed your {selectedExercise.totalDuration}-minute
-                      breathing session.
-                    </p>
-                    <Button
-                      onClick={resetExercise}
-                      className="mt-4 bg-[#2F7A6D] hover:bg-teal-700 text-white rounded-lg px-4 py-2 font-medium"
-                      size="sm"
-                    >
-                      Start New Session
-                    </Button>
-                  </div>
-                )}
+              <div className="h-3 border-2 border-white bg-[#171E19]">
+                <div className="h-full bg-[#FFE17C] transition-[width] duration-500" style={{ width: `${progress}%` }} />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

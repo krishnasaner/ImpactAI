@@ -1,5 +1,4 @@
-/* OpenDyslexic font import - hosted on a CDN */
-@import url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic.css');
+/* Local, accessible reading-mode typography fallback */
 
 :root {
   --content-font-size: 16px;

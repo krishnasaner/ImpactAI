@@ -64,13 +64,13 @@ const buttonVariants = (options: ButtonVariantOptions) => {
   const { variant = 'default', size = 'default', className = '', state = {} } = options;
   return cn(
     // Base styles
-    'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 overflow-hidden before:absolute before:inset-0 before:rounded-xl before:bg-white/0 before:transition-colors hover:before:bg-white/10 active:before:bg-white/5 group',
+    'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[8px] text-sm font-bold transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2677ff]/30 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
     // Variant styles
     {
-      'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:-translate-y-0.5 active:translate-y-0': variant === 'default',
-      'bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:-translate-y-0.5 active:translate-y-0 font-semibold': variant === 'hero',
+      'bg-[#FFE17C] text-[#171E19] border-2 border-black shadow-[4px_4px_0_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:translate-x-1 active:translate-y-1': variant === 'default',
+      'bg-[#FFE17C] text-[#171E19] border-2 border-black shadow-[4px_4px_0_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none font-black': variant === 'hero',
       'bg-destructive text-destructive-foreground hover:bg-destructive/90': variant === 'destructive',
-      'border border-border bg-background hover:bg-accent/10 hover:text-accent-foreground text-foreground': variant === 'outline',
+      'border-2 border-black bg-white text-[#171E19] shadow-[4px_4px_0_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none': variant === 'outline',
       'bg-secondary text-secondary-foreground hover:bg-secondary/80': variant === 'secondary',
       'hover:bg-accent/10 hover:text-accent-foreground text-foreground': variant === 'ghost',
       'text-primary underline-offset-4 hover:underline p-0 h-auto': variant === 'link',

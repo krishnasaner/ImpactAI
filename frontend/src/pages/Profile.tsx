@@ -169,7 +169,7 @@ const Profile = (): React.JSX.Element => {
   };
 
   return (
-    <main className="container mx-auto px-8 py-10 max-w-screen-xl space-y-12">
+    <main className="min-h-screen bg-[#F7F6F0] px-4 sm:px-8 py-10 max-w-screen-xl mx-auto space-y-12">
       <section className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Profile</h1>
         <p className="text-muted-foreground">Manage your personal information and preferences</p>

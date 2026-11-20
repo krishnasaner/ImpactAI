@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import type React from "react";
 
 interface ImportMetaEnv {
   readonly VITE_APP_TITLE: string;
@@ -11,35 +12,34 @@ interface ImportMeta {
 }
 
 declare module "*.svg" {
-  import React = require("react");
   export const ReactComponent: React.FC<React.SVGProps<SVGSVGElement>>;
   const src: string;
   export default src;
 }
 
 declare module "*.png" {
-  const content: any;
-  export default content;
+  const src: string;
+  export default src;
 }
 
 declare module "*.jpg" {
-  const content: any;
-  export default content;
+  const src: string;
+  export default src;
 }
 
 declare module "*.jpeg" {
-  const content: any;
-  export default content;
+  const src: string;
+  export default src;
 }
 
 declare module "*.gif" {
-  const content: any;
-  export default content;
+  const src: string;
+  export default src;
 }
 
 declare module "*.webp" {
-  const content: any;
-  export default content;
+  const src: string;
+  export default src;
 }
 
 declare module "*.module.css" {

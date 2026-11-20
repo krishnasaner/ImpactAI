@@ -72,11 +72,7 @@ const Footer = () => {
             <div className="flex items-center space-x-4 pt-2">
               <div className="flex items-center space-x-2 text-xs font-medium text-gray-600">
                 <Shield className="h-4 w-4 text-[#2F7A6D]" />
-                <span>HIPAA Compliant</span>
-              </div>
-              <div className="flex items-center space-x-2 text-xs font-medium text-gray-600">
-                <Lock className="h-4 w-4 text-[#2F7A6D]" />
-                <span>Encrypted & Confidential</span>
+                <span>Privacy notice</span>
               </div>
             </div>
           </div>

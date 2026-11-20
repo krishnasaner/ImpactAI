@@ -114,6 +114,8 @@ const App = () => (
                         <Route path="dashboard" element={<DashboardRedirect />} />
                         <Route path="admin-dashboard" element={<Dashboard />} />
                         <Route path="student-dashboard" element={<StudentDashboard />} />
+                        <Route path="mood" element={<Navigate to="/app/student-dashboard#check-in" replace />} />
+                        <Route path="settings" element={<Navigate to="/app/theme-settings" replace />} />
                         <Route path="resources" element={<Resources />} />
                         <Route path="forum" element={<Forum />} />
                         <Route path="blog" element={<MentalHealthBlog />} />

@@ -774,7 +774,7 @@ const InstitutionSelection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-3 sm:p-4 lg:p-6">
+    <div className="min-h-screen bg-[#F7F6F0] dot-pattern p-3 sm:p-4 lg:p-6">
       <div className="w-full max-w-7xl mx-auto">
         {/* Header - Improved Mobile Responsive */}
         <div className="text-center mb-6 sm:mb-8 px-2">

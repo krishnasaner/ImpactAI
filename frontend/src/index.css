@@ -3,22 +3,17 @@
 @import './styles/enhanced-theme.css';
 @import './styles/accessibility.css';
 @import './styles/reading-mode.css';
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Apply SF Pro Display font to all elements */
+/* Apply the approved ImpactAI typography direction to all elements */
 * {
   font-family:
-    'Inter',
-    -apple-system,
-    BlinkMacSystemFont,
+    'DM Sans Variable',
+    'Avenir Next',
     'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
     sans-serif;
 }
 
@@ -30,8 +25,9 @@ All colors MUST be HSL. Calming, accessible, stigma-free design.
   :root {
     /* Font Family */
     --font-sans:
-      'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-      Arial, sans-serif;
+      'DM Sans Variable', 'Avenir Next', 'Segoe UI', sans-serif;
+    --font-display:
+      'Manrope Variable', 'Arial Black', 'Segoe UI', sans-serif;
 
     /* Core Impact AI Colors - Ocean Coral Gold Theme */
     --background: 0 0% 100%; /* Neutral White #FFFFFF */
@@ -214,9 +210,10 @@ All colors MUST be HSL. Calming, accessible, stigma-free design.
   h5,
   h6 {
     color: hsl(var(--heading));
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    line-height: 1.2;
+    font-family: 'Manrope Variable', 'Arial Black', 'Segoe UI', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
   }
 
   h1 {
@@ -314,12 +311,14 @@ All colors MUST be HSL. Calming, accessible, stigma-free design.
     --brand-charcoal: #171E19;
     --brand-sage: #B7C6C2;
     --brand-white: #FFFFFF;
+    --brand-neutral: #F7F6F0;
+    --brand-muted: #EAE8DF;
     --brand-black: #000000;
     --radius-brutal: 10px;
     --shadow-brutal: 4px 4px 0 #000;
     --shadow-brutal-lg: 8px 8px 0 #000;
-    --font-sans: 'Satoshi', 'Avenir Next', 'Segoe UI', sans-serif;
-    --font-display: 'Cabinet Grotesk', 'Arial Black', 'Segoe UI', sans-serif;
+    --font-sans: 'DM Sans Variable', 'Avenir Next', 'Segoe UI', sans-serif;
+    --font-display: 'Manrope Variable', 'Arial Black', 'Segoe UI', sans-serif;
   }
 
   * { box-sizing: border-box; }
@@ -359,6 +358,12 @@ All colors MUST be HSL. Calming, accessible, stigma-free design.
   .brutal-outline { border: 2px solid #000 !important; border-radius: 8px; background: #fff; color: #000; box-shadow: var(--shadow-brutal); }
   .brutal-input { min-height: 48px; border: 2px solid #000 !important; border-radius: 8px !important; background: #fff !important; }
   .brutal-input:focus-visible { outline: 3px solid #2677ff; outline-offset: 2px; }
+
+  .dot-pattern {
+    background-image: radial-gradient(rgba(255, 225, 124, 0.42) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+  .impact-page { min-height: 100vh; background: var(--color-neutral); }
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }

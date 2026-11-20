@@ -1,234 +1,20 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import {
-  MessageCircle,
-  Calendar,
-  BookOpen,
-  Users,
-  Heart,
-  CheckCircle,
-  Wind,
-  Bell,
-  Smile,
-  Phone,
-  Shield,
-  Brain,
-  Clock,
-  ChevronRight,
-  Menu,
-  X,
-  Home,
-  Settings,
-  LogOut,
-  User,
-  Lightbulb,
   ArrowRight,
+  Brain,
+  Calendar,
+  Phone,
+  Smile,
+  Wind,
+  BookOpen,
+  Heart,
 } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
-
-// Import functional components
-import { MoodTracker } from '@/components/dashboard/MoodTracker';
+import { useAuth } from '@/contexts/AuthContext';
 import QuickMoodCheckIn from '@/components/dashboard/QuickMoodCheckIn';
-import {
-  MoodSummaryWidget,
-  MoodTrendWidget,
-  MoodStreakWidget,
-  MoodWeeklyWidget,
-} from '@/components/dashboard/MoodWidgets';
 import FloatingMoodButton from '@/components/dashboard/FloatingMoodButton';
-import MoodAnalytics from '@/components/dashboard/MoodAnalytics';
-import { GoalsTracker } from '@/components/dashboard/GoalsTracker';
-import { ActivityTracker, AchievementTracker } from '@/components/dashboard/ActivityTracker';
-import EnhancedDailyTips from '@/components/dashboard/EnhancedDailyTips';
-import { InteractiveAnalytics } from '@/components/dashboard/InteractiveAnalytics';
-import {
-  useActivityLog,
-  useAchievements,
-  useMoodTracking,
-  useGoals,
-} from '@/hooks/useDashboardFeatures';
+import { useActivityLog, useMoodTracking } from '@/hooks/useDashboardFeatures';
 
-// ─── Sidebar nav items ────────────────────────────────────────────────────────
-const NAV_ITEMS = [
-  { label: 'Dashboard', icon: Home, href: '/app/dashboard' },
-  { label: 'AI Chat (Zenith)', icon: MessageCircle, href: '/app/chat' },
-  { label: 'Mood Tracker', icon: Smile, href: '/app/mood' },
-  { label: 'Book Counselling', icon: Calendar, href: '/app/booking' },
-  { label: 'Resources', icon: BookOpen, href: '/app/resources' },
-  { label: 'Community', icon: Users, href: '/app/forum' },
-  { label: 'Breathing', icon: Wind, href: '/app/breathing' },
-];
-
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
-const Sidebar = ({
-  open,
-  onClose,
-  userName,
-}: {
-  open: boolean;
-  onClose: () => void;
-  userName: string;
-}) => {
-  const pathname = window.location.pathname;
-
-  return (
-    <>
-      {/* Overlay (mobile) */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/40 z-30 lg:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Sidebar panel */}
-      <aside
-        className={`
-          fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-100 shadow-lg z-40 flex flex-col
-          transition-transform duration-300
-          ${open ? 'translate-x-0' : '-translate-x-full'}
-          lg:translate-x-0 lg:static lg:shadow-none lg:z-auto
-        `}
-      >
-        {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <Link to="/app/dashboard" className="flex items-center gap-2" onClick={onClose}>
-            <img src="/ImpactAI_logo.png" alt="ImpactAI" className="h-8 w-auto" />
-            <span className="font-bold text-[#2F7A6D] text-lg">ImpactAI</span>
-          </Link>
-          <button
-            className="lg:hidden text-gray-400 hover:text-gray-600"
-            onClick={onClose}
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Nav links */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {NAV_ITEMS.map(({ label, icon: Icon, href }) => {
-            const active = pathname === href;
-            return (
-              <Link
-                key={href}
-                to={href}
-                onClick={onClose}
-                className={`
-                  flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                  ${active
-                    ? 'bg-[#2F7A6D]/10 text-[#2F7A6D]'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-[#2F7A6D]'
-                  }
-                `}
-              >
-                <Icon className="h-4 w-4 flex-shrink-0" />
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* User chip */}
-        <div className="px-4 py-4 border-t border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-[#2F7A6D]/10 flex items-center justify-center">
-              <User className="h-4 w-4 text-[#2F7A6D]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-800 truncate">{userName}</p>
-              <p className="text-xs text-gray-400">Student</p>
-            </div>
-            <Link to="/app/settings" className="text-gray-400 hover:text-gray-600">
-              <Settings className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </aside>
-    </>
-  );
-};
-
-// ─── Top bar ──────────────────────────────────────────────────────────────────
-const TopBar = ({
-  onMenuClick,
-  pageTitle,
-  userName,
-}: {
-  onMenuClick: () => void;
-  pageTitle: string;
-  userName: string;
-}) => (
-  <header className="sticky top-0 z-20 bg-white border-b border-gray-100 shadow-sm flex items-center justify-between px-4 py-3">
-    <div className="flex items-center gap-3">
-      <button
-        className="lg:hidden text-gray-500 hover:text-[#2F7A6D] transition-colors"
-        onClick={onMenuClick}
-        aria-label="Open menu"
-      >
-        <Menu className="h-6 w-6" />
-      </button>
-      <h1 className="text-lg font-semibold text-gray-800">{pageTitle}</h1>
-    </div>
-    <div className="flex items-center gap-3">
-      <Link
-        to="/app/notifications"
-        className="relative text-gray-500 hover:text-[#2F7A6D] transition-colors"
-        aria-label="Notifications"
-      >
-        <Bell className="h-5 w-5" />
-        <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#FFB400]" />
-      </Link>
-      <div className="flex items-center gap-2">
-        <div className="h-8 w-8 rounded-full bg-[#2F7A6D]/10 flex items-center justify-center">
-          <User className="h-4 w-4 text-[#2F7A6D]" />
-        </div>
-        <span className="hidden sm:block text-sm font-medium text-gray-700">
-          {userName.split(' ')[0]}
-        </span>
-      </div>
-    </div>
-  </header>
-);
-
-// ─── Quick action card ────────────────────────────────────────────────────────
-const QuickActionCard = ({
-  title,
-  description,
-  icon: Icon,
-  href,
-  iconBg = 'bg-[#2F7A6D]',
-  onClick,
-}: {
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  href: string;
-  iconBg?: string;
-  onClick?: () => void;
-}) => (
-  <Link
-    to={href}
-    onClick={onClick}
-    className="bg-white border border-gray-100 rounded-xl shadow-sm p-5 flex flex-col gap-4 hover:-translate-y-0.5 transition-transform cursor-pointer group"
-  >
-    <div className={`${iconBg} rounded-xl p-3 w-fit`}>
-      <Icon className="h-5 w-5 text-white" />
-    </div>
-    <div>
-      <p className="font-semibold text-gray-800 group-hover:text-[#2F7A6D] transition-colors text-sm">
-        {title}
-      </p>
-      <p className="text-xs text-gray-500 mt-1 leading-relaxed">{description}</p>
-    </div>
-    <div className="flex items-center text-xs text-[#2F7A6D] font-medium mt-auto">
-      Open <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
-    </div>
-  </Link>
-);
-
-// ─── Institution badge ────────────────────────────────────────────────────────
 interface Institution {
   name: string;
   location?: string;
@@ -236,447 +22,187 @@ interface Institution {
   id?: string;
 }
 
-// ─── Main Dashboard ───────────────────────────────────────────────────────────
+const moodLabels: Record<number, string> = {
+  1: 'Very low',
+  2: 'Low',
+  3: 'Steady',
+  4: 'Good',
+  5: 'Great',
+};
+
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [selectedInstitution, setSelectedInstitution] = useState<Institution | null>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [motivationalMessage, setMotivationalMessage] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Functional hooks — preserved exactly
   const { logActivity } = useActivityLog();
-  const { checkAchievements } = useAchievements();
-  const { moods } = useMoodTracking();
-  const { goals } = useGoals();
-
-  // Handler for action card clicks — preserved exactly
-  const handleActionCardClick = (href: string, title: string) => {
-    const activityTypes: Record<string, 'chat' | 'resource' | 'forum' | 'booking'> = {
-      '/app/chat': 'chat',
-      '/app/booking': 'booking',
-      '/app/resources': 'resource',
-      '/app/forum': 'forum',
-    };
-
-    const activityType = activityTypes[href];
-    if (activityType) {
-      logActivity(activityType, `Clicked ${title}`, `Navigated to ${title} from dashboard`);
-    }
-  };
+  const { moods, getTodayMood, getWeeklyMoodAverage } = useMoodTracking();
 
   useEffect(() => {
-    // Load selected institution from localStorage
     const institution = localStorage.getItem('selected_institution');
     if (institution) {
-      setSelectedInstitution(JSON.parse(institution));
-    }
-
-    const getMotivationalMessage = () => {
-      const messages = [
-        'Your mental health matters. Take it one day at a time.',
-        "You're stronger than you think. Keep moving forward.",
-        'Every step toward wellness is a victory worth celebrating.',
-        'Remember to be kind to yourself today.',
-        'Your journey to better mental health starts with small steps.',
-        'Progress, not perfection. Every small step counts.',
-        'You have the strength to overcome any challenge today.',
-        'Taking care of your mental health is a sign of strength.',
-        'Today is a new opportunity to prioritize your wellbeing.',
-        'You deserve happiness, peace, and self-compassion.',
-      ];
-
-      const today = new Date().toDateString();
-      const savedMessage = localStorage.getItem(`motivational_message_${today}`);
-
-      if (savedMessage) {
-        return savedMessage;
-      } else {
-        const dateNumber = new Date().getDate() + new Date().getMonth();
-        const messageIndex = dateNumber % messages.length;
-        const todayMessage = messages[messageIndex];
-        localStorage.setItem(`motivational_message_${today}`, todayMessage);
-        return todayMessage;
+      try {
+        setSelectedInstitution(JSON.parse(institution));
+      } catch {
+        setSelectedInstitution(null);
       }
-    };
-
-    setMotivationalMessage(getMotivationalMessage());
-
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-
+    }
     logActivity('resource', 'Visited Student Dashboard', 'Dashboard access');
-
-    const activities = JSON.parse(localStorage.getItem('activity_log') || '[]');
-    checkAchievements(activities, moods, goals);
-
-    return () => clearInterval(timer);
-  }, [logActivity, checkAchievements, moods, goals]);
-
-  const getGreeting = () => {
-    const formattedHour = new Intl.DateTimeFormat('en-IN', {
-      hour: 'numeric',
-      hour12: false,
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    }).format(currentTime);
-    const hour = Number.parseInt(formattedHour, 10);
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  };
+  }, [logActivity]);
 
   const firstName = user?.name?.split(' ')[0] ?? 'there';
-  const fullName = user?.name ?? 'Student';
+  const todayMood = getTodayMood();
+  const weeklyAverage = getWeeklyMoodAverage();
+  const recentMoods = moods.slice(-7);
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] flex">
-      {/* ── Sidebar ── */}
-      <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        userName={fullName}
-      />
-
-      {/* ── Main area ── */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <TopBar
-          onMenuClick={() => setSidebarOpen(true)}
-          pageTitle="Dashboard"
-          userName={fullName}
-        />
-
-        {/* Scrollable content */}
-        <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 max-w-7xl mx-auto w-full">
-
-          {/* ── Welcome banner ── */}
-          <div className="bg-gradient-to-r from-[#2F7A6D]/10 via-white to-blue-50 border border-gray-100 rounded-xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Smile className="h-5 w-5 text-[#2F7A6D]" />
-                <span className="text-xs font-medium text-[#2F7A6D] uppercase tracking-wide">
-                  {getGreeting()}
-                </span>
+    <main className="min-h-[calc(100vh-4rem)] bg-[#F7F6F0]">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <section className="grid gap-5 lg:grid-cols-[1.45fr_.55fr]">
+          <div className="dot-pattern border-2 border-black bg-[#FFE17C] p-6 shadow-[8px_8px_0_#000] sm:p-8">
+            <p className="text-xs font-black uppercase tracking-[.16em]">{greeting}</p>
+            <h1 className="mt-3 max-w-xl text-[clamp(2.5rem,6vw,4.8rem)] leading-[.92]">
+              {firstName}, how is today feeling?
+            </h1>
+            <p className="mt-5 max-w-xl text-base leading-relaxed">
+              Take a breath, check in with yourself, or begin a conversation with Zenith.
+            </p>
+            {selectedInstitution && (
+              <div className="mt-5 inline-flex border-2 border-black bg-white px-3 py-2 text-sm font-bold">
+                {selectedInstitution.name}
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {getGreeting()}, <span className="text-[#2F7A6D]">{firstName}</span> 👋
-              </h2>
-              <p className="text-gray-500 mt-1 max-w-xl text-sm leading-relaxed">
-                {motivationalMessage || 'Welcome to your wellness journey…'}
+            )}
+          </div>
+
+          <div className="flex flex-col justify-between border-2 border-black bg-[#171E19] p-6 text-white shadow-[8px_8px_0_#000]">
+            <div>
+              <div className="flex h-12 w-12 items-center justify-center border-2 border-white bg-[#FFE17C] text-[#171E19]">
+                <Brain className="h-6 w-6" />
+              </div>
+              <p className="mt-6 text-xs font-black uppercase tracking-[.16em] text-[#FFE17C]">
+                Zenith
               </p>
-              {selectedInstitution && (
-                <Badge
-                  variant="outline"
-                  className="mt-3 text-xs border-[#2F7A6D]/30 text-[#2F7A6D]"
-                >
-                  {selectedInstitution.name} Student
-                </Badge>
+              <h2 className="mt-2 text-3xl !text-white">Have room to talk.</h2>
+            </div>
+            <Link
+              to="/app/chat"
+              className="brutal-button mt-8 inline-flex items-center justify-center gap-2 px-5 py-3"
+            >
+              Open Zenith <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
+
+        <section
+          id="check-in"
+          className="mt-8 grid scroll-mt-24 gap-5 lg:grid-cols-[1fr_.65fr]"
+        >
+          <div className="border-2 border-black bg-white p-5 shadow-[4px_4px_0_#000] sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[.14em]">Mood check-in</p>
+                <h2 className="mt-2 text-3xl">What is here today?</h2>
+              </div>
+              {todayMood && (
+                <span className="border-2 border-black bg-[#B7C6C2] px-3 py-2 text-sm font-black">
+                  {moodLabels[todayMood.mood]}
+                </span>
               )}
             </div>
-            <div className="flex gap-2 flex-shrink-0">
-              <Button
-                asChild
-                className="bg-[#2F7A6D] hover:bg-teal-700 text-white text-sm"
-              >
-                <Link
-                  to="/app/chat"
-                  onClick={() =>
-                    logActivity('chat', 'Started Zenith chat from banner', 'Welcome banner CTA')
-                  }
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Chat with Zenith
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="border-[#2F7A6D]/30 text-[#2F7A6D] hover:bg-[#2F7A6D]/5 text-sm"
-              >
-                <Link to="/app/mood">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Track Mood
-                </Link>
-              </Button>
+            <div className="mt-6">
+              <QuickMoodCheckIn
+                variant="default"
+                showStreak={false}
+                showTitle={false}
+              />
             </div>
           </div>
 
-          {/* ── Quick action cards ── */}
-          <section>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Quick Actions
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <QuickActionCard
-                title="Chat with Zenith"
-                description="Instant AI mental health support, available 24/7"
-                icon={MessageCircle}
-                href="/app/chat"
-                iconBg="bg-[#2F7A6D]"
-                onClick={() => handleActionCardClick('/app/chat', 'Chat with Zenith')}
-              />
-              <QuickActionCard
-                title="Track Mood"
-                description="Log how you're feeling and spot patterns over time"
-                icon={Smile}
-                href="/app/mood"
-                iconBg="bg-[#4A90E2]"
-                onClick={() => handleActionCardClick('/app/mood', 'Track Mood')}
-              />
-              <QuickActionCard
-                title="Book Counselling"
-                description="Schedule a session with a licensed professional"
-                icon={Calendar}
-                href="/app/booking"
-                iconBg="bg-amber-500"
-                onClick={() => handleActionCardClick('/app/booking', 'Book Counselling')}
-              />
-              <QuickActionCard
-                title="Browse Resources"
-                description="Evidence-based tools, meditations & coping guides"
-                icon={BookOpen}
-                href="/app/resources"
-                iconBg="bg-purple-500"
-                onClick={() => handleActionCardClick('/app/resources', 'Browse Resources')}
-              />
-            </div>
-          </section>
-
-          {/* ── Mood check-in row ── */}
-          <section>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Mood Check-In
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
-                <QuickMoodCheckIn variant="default" showStreak={true} />
-              </div>
-              <MoodSummaryWidget />
-              <MoodStreakWidget />
-            </div>
-          </section>
-
-          {/* ── Mood trend / weekly ── */}
-          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <MoodTrendWidget />
-            <MoodWeeklyWidget />
-            <MoodAnalytics timeframe="week" />
-          </section>
-
-          {/* ── Wellness journey ── */}
-          <section>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Your Wellness Journey
-            </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-              <div className="xl:col-span-2">
-                <InteractiveAnalytics />
-              </div>
-              <MoodTracker />
-              <GoalsTracker />
-              <ActivityTracker />
-              <AchievementTracker />
-            </div>
-          </section>
-
-          {/* ── Daily tips ── */}
-          <section>
-            <EnhancedDailyTips />
-          </section>
-
-          {/* ── Wellness tools row ── */}
-          <section>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Wellness Tools
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Breathing exercises */}
-              <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-5 hover:-translate-y-0.5 transition-transform">
-                <div className="flex items-start gap-4">
-                  <div className="bg-blue-100 rounded-xl p-3 flex-shrink-0">
-                    <Wind className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800">Breathing Exercises</p>
-                    <p className="text-sm text-gray-500 mt-1 mb-3 leading-relaxed">
-                      Quick breathing techniques to reduce stress and improve focus
-                    </p>
-                    <ul className="space-y-1 mb-4">
-                      {['4-7-8 breathing for anxiety', 'Box breathing for focus', 'Guided sessions (1-10 min)'].map((f) => (
-                        <li key={f} className="flex items-center text-xs text-gray-500">
-                          <CheckCircle className="h-3 w-3 text-blue-500 mr-2 flex-shrink-0" />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white text-sm">
-                      <Link to="/app/breathing">
-                        <Wind className="h-4 w-4 mr-2" />
-                        Start Exercise
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Wellness reminders */}
-              <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-5 hover:-translate-y-0.5 transition-transform">
-                <div className="flex items-start gap-4">
-                  <div className="bg-purple-100 rounded-xl p-3 flex-shrink-0">
-                    <Bell className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800">Wellness Reminders</p>
-                    <p className="text-sm text-gray-500 mt-1 mb-3 leading-relaxed">
-                      Customize mood check-in, breathing, and session reminders
-                    </p>
-                    <ul className="space-y-1 mb-4">
-                      {['Daily mood reminders', 'Breathing exercise alerts', 'Session reminders'].map((f) => (
-                        <li key={f} className="flex items-center text-xs text-gray-500">
-                          <CheckCircle className="h-3 w-3 text-purple-500 mr-2 flex-shrink-0" />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="border-purple-200 text-purple-700 hover:bg-purple-50 text-sm"
+          <div className="border-2 border-black bg-[#B7C6C2] p-5 shadow-[4px_4px_0_#000] sm:p-6">
+            <p className="text-xs font-black uppercase tracking-[.14em]">Recent mood</p>
+            {recentMoods.length > 0 ? (
+              <>
+                <div className="mt-5 flex items-end justify-between gap-2">
+                  {recentMoods.map((entry, index) => (
+                    <div
+                      key={`${entry.timestamp}-${index}`}
+                      className="flex min-w-0 flex-1 flex-col items-center gap-2"
                     >
-                      <Link to="/app/notifications">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Manage Reminders
-                      </Link>
-                    </Button>
-                  </div>
+                      <div
+                        className="w-full border-2 border-black bg-white"
+                        style={{ height: `${24 + entry.mood * 11}px` }}
+                        title={`${moodLabels[entry.mood]} — ${new Date(entry.timestamp).toLocaleDateString()}`}
+                      />
+                      <span className="text-[10px] font-bold">
+                        {new Date(entry.timestamp).toLocaleDateString(undefined, {
+                          weekday: 'narrow',
+                        })}
+                      </span>
+                    </div>
+                  ))}
                 </div>
+                <p className="mt-5 text-sm font-bold">
+                  Weekly average: {weeklyAverage ? `${weeklyAverage}/5` : 'No entries'}
+                </p>
+              </>
+            ) : (
+              <div className="mt-5 border-t-2 border-black pt-5">
+                <h3 className="text-xl">No mood entries yet</h3>
+                <p className="mt-2 text-sm leading-relaxed">
+                  Your check-in history will appear here after you log how you feel.
+                </p>
               </div>
-            </div>
-          </section>
+            )}
+          </div>
+        </section>
 
-          {/* ── Immediate support CTA ── */}
-          <section className="bg-gradient-to-r from-[#2F7A6D]/5 to-[#4A90E2]/5 border border-[#2F7A6D]/20 rounded-xl shadow-sm p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <section className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <Link to="/app/breathing" className="brutal-card min-h-[190px] p-6">
+            <Wind className="h-7 w-7" />
+            <h2 className="mt-10 text-2xl">Take a breathing pause</h2>
+            <p className="mt-2 text-sm leading-relaxed">
+              Choose a guided 4-7-8, box, coherent or bellows exercise.
+            </p>
+          </Link>
+          <Link to="/app/resources" className="brutal-card min-h-[190px] bg-[#B7C6C2] p-6">
+            <BookOpen className="h-7 w-7" />
+            <h2 className="mt-10 text-2xl">Explore resources</h2>
+            <p className="mt-2 text-sm leading-relaxed">
+              Read practical wellness guides and support articles.
+            </p>
+          </Link>
+          <Link to="/app/booking" className="brutal-card min-h-[190px] bg-[#171E19] p-6 text-white">
+            <Calendar className="h-7 w-7 text-[#FFE17C]" />
+            <h2 className="mt-10 text-2xl !text-white">Find a session</h2>
+            <p className="mt-2 text-sm leading-relaxed text-[#B7C6C2]">
+              Continue to the counselling appointment flow.
+            </p>
+          </Link>
+        </section>
+
+        <section className="mt-8 border-2 border-black bg-white p-5 shadow-[4px_4px_0_#000] sm:p-6">
+          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
             <div>
-              <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-1">
-                <Lightbulb className="h-5 w-5 text-[#2F7A6D]" />
-                Need immediate support?
-              </h3>
-              <p className="text-sm text-gray-500">
-                Zenith is available 24/7 for instant mental health assistance
+              <p className="text-xs font-black uppercase tracking-[.14em]">Immediate support</p>
+              <h2 className="mt-2 text-2xl">If you need help right now</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#171E19]/70">
+                Contact local emergency services or an established crisis line. ImpactAI does not replace professional care.
               </p>
             </div>
-            <div className="flex gap-3 flex-shrink-0">
-              <Button asChild className="bg-[#2F7A6D] hover:bg-teal-700 text-white text-sm">
-                <Link
-                  to="/app/chat"
-                  onClick={() =>
-                    logActivity('chat', 'Started Zenith chat from quick access', 'Dashboard quick access button')
-                  }
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Start Zenith
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="border-[#2F7A6D]/30 text-[#2F7A6D] hover:bg-[#2F7A6D]/5 text-sm"
-              >
-                <Link
-                  to="/app/booking"
-                  onClick={() =>
-                    logActivity('booking', 'Started booking from quick access', 'Dashboard quick access button')
-                  }
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Book Session
-                </Link>
-              </Button>
+            <div className="flex flex-wrap gap-3">
+              <a href="tel:14416" className="brutal-button inline-flex items-center gap-2 px-4 py-3">
+                <Phone className="h-4 w-4" /> Tele-MANAS 14416
+              </a>
+              <a href="tel:+912227546669" className="brutal-outline inline-flex items-center px-4 py-3 text-sm font-bold">
+                AASRA
+              </a>
             </div>
-          </section>
-
-          {/* ── Crisis / Emergency support ── */}
-          <section className="bg-red-50 border border-red-200 rounded-xl p-5 sm:p-6">
-            <div className="text-center space-y-5">
-              <div className="flex items-center justify-center gap-3">
-                <div className="p-2.5 rounded-full bg-red-100">
-                  <Shield className="h-5 w-5 text-red-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-red-800">Crisis Support Available</h3>
-                  <div className="h-0.5 w-12 bg-red-400 rounded-full mx-auto mt-1" />
-                </div>
-              </div>
-
-              <p className="text-sm text-red-700 leading-relaxed max-w-2xl mx-auto">
-                If you're experiencing a mental health crisis, having thoughts of self-harm, or need
-                immediate support, please reach out right away. You are not alone — help is
-                available across India right now.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                  onClick={() => window.open('tel:14416', '_self')}
-                >
-                  <Phone className="h-4 w-4 mr-2" />
-                  Tele-MANAS: 14416
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-red-300 text-red-700 hover:bg-red-100"
-                  onClick={() => window.open('tel:+912227546669', '_self')}
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  AASRA: +91 22 2754 6669
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="border-red-300 text-red-700 hover:bg-red-100"
-                >
-                  <Link
-                    to="/app/chat"
-                    onClick={() =>
-                      logActivity('chat', 'Emergency Zenith chat', 'Crisis support - Emergency Zenith chat accessed')
-                    }
-                  >
-                    <Brain className="h-4 w-4 mr-2" />
-                    Emergency Zenith
-                  </Link>
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-red-200 text-sm">
-                <div className="text-center space-y-1">
-                  <p className="font-semibold text-red-800 flex items-center justify-center gap-1">
-                    <Clock className="h-4 w-4" /> Campus Counseling
-                  </p>
-                  <p className="text-red-600 text-xs">
-                    Contact your campus counseling center for professional support
-                  </p>
-                </div>
-                <div className="text-center space-y-1">
-                  <p className="font-semibold text-red-800 flex items-center justify-center gap-1">
-                    <Heart className="h-4 w-4" /> Peer Support
-                  </p>
-                  <p className="text-red-600 text-xs">
-                    Join our anonymous peer support community for shared experiences
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-        </main>
+          </div>
+        </section>
       </div>
-
-      {/* Floating Mood Button */}
       <FloatingMoodButton position="bottom-right" showOnlyIfNotLogged={false} />
-    </div>
+    </main>
   );
 };
 
