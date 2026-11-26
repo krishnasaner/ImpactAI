@@ -19,6 +19,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import notificationService from '@/services/notificationService';
+import { appointmentService } from '@/services/api';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -401,6 +402,7 @@ const Booking = () => {
   );
 
   // Anonymous booking state management
+  const [counselors, setCounselors] = useState<Counselor[]>(mockCounselors);
   const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
   const [anonymousId, setAnonymousId] = useState<string>('');
   const [privacyLevel, setPrivacyLevel] = useState<'basic' | 'enhanced' | 'maximum'>('basic');
@@ -437,6 +439,51 @@ const Booking = () => {
     }
   }, [location.search]);
 
+  // Load counsellors from backend
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCounsellors = async () => {
+      try {
+        const res = await appointmentService.getCounsellors();
+        if (isMounted && res.data && res.data.length > 0) {
+          const mapped: Counselor[] = res.data.map((c: any) => {
+            const mockMatch = mockCounselors.find(
+              (m) => m.name.toLowerCase() === c.name.toLowerCase() || m.id === String(c.id)
+            );
+            return {
+              id: String(c.id),
+              name: c.name,
+              title: c.title || mockMatch?.title || 'Campus Counselor',
+              specialties: c.specialties || mockMatch?.specialties || ['Stress Management'],
+              avatar: mockMatch?.avatar || '/api/placeholder/150/150',
+              rating: c.rating || mockMatch?.rating || 4.8,
+              reviewCount: c.review_count || mockMatch?.reviewCount || 25,
+              experience: c.experience || mockMatch?.experience || '5+ years',
+              languages: c.languages || mockMatch?.languages || ['English'],
+              availableSlots: c.availability_slots || mockMatch?.availableSlots || {},
+              bio: c.bio || mockMatch?.bio || '',
+              education: mockMatch?.education || ['MA in Counseling Psychology'],
+              certifications: mockMatch?.certifications || ['Licensed Counselor'],
+              approaches: mockMatch?.approaches || ['CBT', 'Mindfulness'],
+              nextAvailable: mockMatch?.nextAvailable || getNextAvailableSlot(1, 10),
+              responseTime: mockMatch?.responseTime || '< 2 hours',
+              reviews: mockMatch?.reviews || [],
+              isOnline: Boolean(c.is_available ?? true),
+              timezone: 'IST',
+            };
+          });
+          setCounselors(mapped);
+        }
+      } catch (err) {
+        console.warn('Backend counsellors load fallback to local data:', err);
+      }
+    };
+    fetchCounsellors();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Real-time availability updater
   useEffect(() => {
     const updateAvailability = () => {
@@ -447,7 +494,7 @@ const Booking = () => {
       const newStatus: { [key: string]: 'online' | 'busy' | 'offline' } = {};
       const newWatchers: { [key: string]: number } = {};
 
-      mockCounselors.forEach((counselor) => {
+      counselors.forEach((counselor) => {
         // Random status updates
         const statuses: ('online' | 'busy' | 'offline')[] = ['online', 'busy', 'offline'];
         const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
@@ -519,7 +566,7 @@ const Booking = () => {
     setBookingProgress(progress);
   }, [selectedCounselor, selectedDate, selectedTime, bookingForm, step]);
 
-  const selectedCounselorData = mockCounselors.find((c) => c.id === selectedCounselor);
+  const selectedCounselorData = counselors.find((c) => c.id === selectedCounselor);
 
   // Get available time slots for selected date with real-time updates
   const getAvailableSlots = (counselor: Counselor, date: Date) => {
@@ -546,7 +593,7 @@ const Booking = () => {
   };
 
   // Filter and sort counselors
-  const filteredCounselors = mockCounselors
+  const filteredCounselors = counselors
     .filter((counselor) => {
       const matchesSearch =
         counselor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -569,7 +616,7 @@ const Booking = () => {
     });
 
   // Get all unique specialties for filter
-  const allSpecialties = Array.from(new Set(mockCounselors.flatMap((c) => c.specialties))).sort();
+  const allSpecialties = Array.from(new Set(counselors.flatMap((c) => c.specialties))).sort();
 
   const handleBooking = async () => {
     // Validate required fields based on booking type
@@ -603,6 +650,28 @@ const Booking = () => {
     try {
       // Show instant loading state
       setBookingProgress(80);
+
+      // Persist appointment to backend with strict verification
+      const appointmentIso = selectedDate
+        ? new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${selectedTime || '10:00'}:00`).toISOString()
+        : new Date().toISOString();
+      try {
+        await appointmentService.bookAppointment({
+          counsellor_id: Number(selectedCounselor) || 1,
+          appointment_date: appointmentIso,
+          duration_minutes: 45,
+          meeting_type: sessionType === 'phone' ? 'audio' : 'video',
+          notes: isAnonymous ? anonymousForm.concerns : bookingForm.reason,
+        });
+      } catch (backendErr: any) {
+        const errorDetail =
+          backendErr?.response?.data?.detail ||
+          backendErr?.message ||
+          'Failed to reserve this time slot. It may have already been booked.';
+        alert(`Booking Error: ${errorDetail}`);
+        setBookingProgress(0);
+        return;
+      }
 
       const bookingData = isAnonymous
         ? {

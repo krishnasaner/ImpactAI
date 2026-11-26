@@ -1,0 +1,90 @@
+{
+  "split_method": "GroupShuffleSplit (test_size=0.2, random_state=42)",
+  "context_overlap": 0,
+  "train_samples": 2794,
+  "test_samples": 718,
+  "unique_train_contexts": 796,
+  "unique_test_contexts": 199,
+  "accuracy": 0.8928,
+  "macro_f1": 0.6717,
+  "weighted_f1": 0.8752,
+  "per_class": {
+    "low": {
+      "precision": 0.8847,
+      "recall": 0.9944,
+      "f1": 0.9364,
+      "support": 540
+    },
+    "medium": {
+      "precision": 0.9444,
+      "recall": 0.7589,
+      "f1": 0.8416,
+      "support": 112
+    },
+    "high": {
+      "precision": 1.0,
+      "recall": 0.2444,
+      "f1": 0.3929,
+      "support": 45
+    },
+    "crisis": {
+      "precision": 0.8,
+      "recall": 0.381,
+      "f1": 0.5161,
+      "support": 21
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "low",
+      "medium",
+      "high",
+      "crisis"
+    ],
+    "matrix": [
+      [
+        537,
+        3,
+        0,
+        0
+      ],
+      [
+        27,
+        85,
+        0,
+        0
+      ],
+      [
+        32,
+        0,
+        11,
+        2
+      ],
+      [
+        11,
+        2,
+        0,
+        8
+      ]
+    ]
+  },
+  "crisis_detection": {
+    "true_positives": 8,
+    "false_negatives": 13,
+    "false_positives": 2,
+    "total_actual": 21
+  },
+  "comparison_with_random_split": {
+    "random_accuracy": 0.9871977240398293,
+    "random_macro_f1": 0.9860587700699049,
+    "group_accuracy": 0.8928,
+    "group_macro_f1": 0.6717
+  },
+  "dataset_limitations": [
+    "Severity labels derived from text heuristics, not expert annotations",
+    "71.7% duplicate rows inflate random-split metrics",
+    "Not clinically validated",
+    "Class imbalance present",
+    "Should not be sole crisis decision maker"
+  ]
+}

@@ -11,7 +11,7 @@ export default function PublicLanding() {
       <header className="sticky top-0 z-50 border-b-2 border-black bg-white">
         <div className="impact-shell flex h-20 items-center justify-between">
           <Link to="/" aria-label="ImpactAI home" className="flex items-center gap-3">
-            <img src="/ImpactAI_logo.png" alt="ImpactAI" className="h-11 w-auto object-contain" />
+            <img src="/ImpactAI_logo.png" alt="ImpactAI" className="h-11 md:h-12 w-auto max-w-[170px] object-contain" />
           </Link>
           <nav className="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
             {nav.map(([label, href]) => href.startsWith('/') ? <Link key={label} to={href} className="font-bold hover:underline">{label}</Link> : <a key={label} href={href} className="font-bold hover:underline">{href === '#features' ? 'Features' : label}</a>)}
@@ -108,5 +108,5 @@ function Feature({ icon, title, copy, className }: { icon: React.ReactNode; titl
 }
 
 function Footer() {
-  return <footer className="border-t-2 border-black bg-white"><div className="impact-shell flex flex-col gap-6 py-10 md:flex-row md:items-end md:justify-between"><div><img src="/ImpactAI_logo.png" alt="ImpactAI" className="h-12"/><p className="mt-3 max-w-sm text-sm text-[#171E19]/70">Student mental well-being support through conversation, resources and connection.</p></div><nav className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm font-bold"><Link to="/about">About</Link><Link to="/contact">Contact</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></nav></div></footer>;
+  return <footer className="border-t-2 border-black bg-white"><div className="impact-shell flex flex-col gap-6 py-10 md:flex-row md:items-end md:justify-between"><div><img src="/ImpactAI_logo.png" alt="ImpactAI" className="h-12 w-auto max-w-[175px] object-contain"/><p className="mt-3 max-w-sm text-sm text-[#171E19]/70">Student mental well-being support through conversation, resources and connection.</p></div><nav className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm font-bold"><Link to="/about">About</Link><Link to="/contact">Contact</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></nav></div></footer>;
 }

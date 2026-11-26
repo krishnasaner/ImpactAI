@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { User as UserType } from '@/types/auth';
+import { userService } from '@/services/api';
 import { ImageUpload } from '@/components/profile/ImageUpload';
 import { FormField } from '@/components/profile/FormField';
 import {
@@ -41,6 +42,27 @@ const Profile = (): React.JSX.Element => {
   useEffect(() => {
     if (user) {
       setEditData(user);
+      // Fetch backend profile data
+      userService
+        .getProfile()
+        .then((res) => {
+          if (res.data) {
+            setEditData((prev) => ({
+              ...prev,
+              name: res.data.display_name || prev.name,
+              phone: res.data.phone || prev.phone,
+              dateOfBirth: res.data.date_of_birth || prev.dateOfBirth,
+              university: res.data.university || prev.university,
+              major: res.data.major || prev.major,
+              studentId: res.data.student_id || prev.studentId,
+              bio: res.data.bio || prev.bio,
+              avatar: res.data.avatar_url || prev.avatar,
+              license: res.data.license || prev.license,
+              experience: res.data.experience || prev.experience,
+            }));
+          }
+        })
+        .catch(() => {});
     }
   }, [user]);
 
@@ -108,6 +130,22 @@ const Profile = (): React.JSX.Element => {
     updateUser(editData);
     setIsEditing(false);
     setValidationErrors({});
+
+    // Persist to backend
+    userService
+      .updateProfile({
+        display_name: editData.name,
+        phone: editData.phone,
+        date_of_birth: editData.dateOfBirth,
+        university: editData.university,
+        major: editData.major,
+        student_id: editData.studentId,
+        bio: editData.bio,
+        avatar_url: editData.avatar,
+        license: editData.license,
+        experience: editData.experience,
+      })
+      .catch((err) => console.error('Failed to sync profile to backend:', err));
 
     toast({
       title: 'Profile Updated',

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { resourceService } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -432,6 +433,8 @@ const mockResources: Resource[] = [
 
 const Resources = () => {
   const { settings } = useTheme();
+  const [resources, setResources] = useState<Resource[]>(mockResources);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<keyof typeof categories>('all');
   const [selectedLanguage, setSelectedLanguage] = useState<keyof typeof languages | 'all'>('all');
@@ -448,6 +451,50 @@ const Resources = () => {
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
   const [currentLanguageContext, setCurrentLanguageContext] =
     useState<keyof typeof languages>('english');
+
+  // Fetch backend resources on mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchResources = async () => {
+      try {
+        setIsLoading(true);
+        const res = await resourceService.list();
+        if (isMounted && res.data && res.data.length > 0) {
+          const mapped: Resource[] = res.data.map((item: any) => ({
+            id: String(item.id),
+            title: item.title,
+            description: item.description,
+            type: (item.content_type === 'exercise' ? 'tool' : item.content_type || 'article') as any,
+            category: (item.category || 'stress') as any,
+            duration: item.read_time || '5 min',
+            difficulty: 'beginner' as const,
+            language: (item.language === 'hi' ? 'hindi' : 'english') as any,
+            views: item.view_count || 0,
+            rating: 4.8,
+            url: item.content_url || undefined,
+            tags: item.tags || [],
+            isBookmarked: Boolean(item.is_bookmarked),
+          }));
+          // Merge with rich local mock resources so all items remain accessible
+          const merged = [...mapped];
+          mockResources.forEach((mock) => {
+            if (!merged.some((m) => m.title.toLowerCase() === mock.title.toLowerCase())) {
+              merged.push(mock);
+            }
+          });
+          setResources(merged);
+        }
+      } catch (err) {
+        console.warn('Backend resources fetch error, fallback to local resources:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchResources();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Reading mode classes
   const readingModeClasses = settings.readingMode?.enabled
@@ -467,7 +514,7 @@ const Resources = () => {
 
   // Enhanced filtering and search
   const filteredResources = useMemo(() => {
-    const filtered = mockResources.filter((resource) => {
+    const filtered = resources.filter((resource) => {
       const matchesSearch =
         resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         resource.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -511,6 +558,7 @@ const Resources = () => {
 
     return filtered;
   }, [
+    resources,
     searchQuery,
     selectedCategory,
     selectedLanguage,
@@ -520,11 +568,17 @@ const Resources = () => {
     bookmarkedOnly,
   ]);
 
-  const toggleBookmark = (resourceId: string) => {
-    // In a real app, this would update the backend
-    const resourceIndex = mockResources.findIndex((r) => r.id === resourceId);
-    if (resourceIndex !== -1) {
-      mockResources[resourceIndex].isBookmarked = !mockResources[resourceIndex].isBookmarked;
+  const toggleBookmark = async (resourceId: string) => {
+    setResources((prev) =>
+      prev.map((r) => (r.id === resourceId ? { ...r, isBookmarked: !r.isBookmarked } : r))
+    );
+    const numId = parseInt(resourceId, 10);
+    if (!isNaN(numId)) {
+      try {
+        await resourceService.toggleBookmark(numId);
+      } catch (err) {
+        console.warn('Bookmark sync fallback:', err);
+      }
     }
   };
 
@@ -701,7 +755,7 @@ const Resources = () => {
         <ScrollFadeIn yOffset={24} delay={0.1}>
           <div className="flex items-center justify-between">
             <p className="text-muted-foreground">
-              Showing {filteredResources.length} of {mockResources.length} resources
+              Showing {filteredResources.length} of {resources.length} resources
             </p>
             <Button
               variant="outline"

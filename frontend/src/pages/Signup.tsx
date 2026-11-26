@@ -197,7 +197,7 @@ const Signup = () => {
                 <img
                   src="/ImpactAI_logo.png"
                   alt="ImpactAI Logo"
-                  className="h-16 w-auto mx-auto mb-2 object-contain"
+                  className="h-14 md:h-16 w-auto max-w-[190px] mx-auto mb-2 bg-white px-3 py-1.5 border-2 border-black rounded shadow-[3px_3px_0_#000] object-contain"
                 />
               </Link>
               <p className="text-gray-500 text-sm">Your trusted mental health companion</p>

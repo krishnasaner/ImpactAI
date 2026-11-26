@@ -166,7 +166,7 @@ const Login = () => {
     <PageTransition>
       <div className="min-h-screen bg-[#FFE17C] lg:grid lg:grid-cols-[.82fr_1.18fr]">
         <aside className="hidden lg:flex flex-col justify-between border-r-2 border-black bg-[#171E19] p-10 text-white dot-pattern">
-          <Link to="/" className="inline-flex"><img src="/ImpactAI_logo.png" alt="ImpactAI" className="h-12 w-auto bg-white px-3 py-1 border-2 border-white" /></Link>
+          <Link to="/" className="inline-flex"><img src="/ImpactAI_logo.png" alt="ImpactAI" className="h-14 w-auto max-w-[200px] bg-white px-4 py-2 border-2 border-black rounded shadow-[3px_3px_0_#000] object-contain" /></Link>
           <div>
             <span className="text-sm font-black uppercase tracking-[.16em] text-[#FFE17C]">A steady place to begin</span>
             <h1 className="mt-4 max-w-lg text-6xl font-black leading-[.92] !text-white">YOUR SPACE.<br/>YOUR PACE.</h1>
@@ -177,7 +177,7 @@ const Login = () => {
         <main className="flex min-h-screen items-center justify-center p-4 sm:p-8">
           <div className="w-full max-w-[520px]">
             <div className="mb-6 flex items-center justify-between lg:hidden">
-              <Link to="/"><img src="/ImpactAI_logo.png" alt="ImpactAI" className="h-10 w-auto" /></Link>
+              <Link to="/"><img src="/ImpactAI_logo.png" alt="ImpactAI" className="h-10 w-auto max-w-[145px] object-contain" /></Link>
               <Link to="/signup" className="brutal-outline px-4 py-2 text-sm font-bold">Sign up</Link>
             </div>
             <ScrollFadeIn yOffset={16}>
