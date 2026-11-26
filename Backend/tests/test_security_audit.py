@@ -17,27 +17,7 @@ from sqlalchemy.pool import StaticPool
 from main import app
 from database import Base, get_db, UserRow, ChatSessionRow, MessageRow, SessionRow, RefreshTokenRow
 from services.security import hash_password, create_access_token, create_refresh_token
-
-
-# Use an in-memory SQLite database with StaticPool so all threads/sessions share the same DB
-TEST_DB_URL = "sqlite:///:memory:"
-test_engine = create_engine(
-    TEST_DB_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
-
-
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
+from tests.conftest import test_engine, TestingSessionLocal
 
 
 class SecurityAuditTestCase(unittest.TestCase):
@@ -48,7 +28,7 @@ class SecurityAuditTestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        Base.metadata.drop_all(bind=test_engine)
+        pass
 
     def setUp(self):
         # Clear tables between tests
@@ -316,6 +296,99 @@ class SecurityAuditTestCase(unittest.TestCase):
             headers={"Authorization": f"Bearer {self.token_alice}"},
         )
         self.assertEqual(res.status_code, 200)
+
+    # ── 7. Enhanced AI Safety, Crisis Lockdown & Readiness ───────────────────
+
+    @patch("routes.chat.generate_ai_chat")
+    def test_deterministic_crisis_cannot_be_downgraded(self, mock_ai):
+        """Verify that explicit suicidal language locks severity to crisis even if LLM returns low."""
+        # Simulated buggy/misbehaving LLM attempting to downgrade crisis
+        mock_ai.return_value = {
+            "text": "Everything is fine, don't worry.",
+            "severity": "low",
+            "suggestions": ["Smile"],
+        }
+        res = self.client.post(
+            "/chat",
+            json={"message": "I want to kill myself right now"},
+            headers={"Authorization": f"Bearer {self.token_alice}"},
+        )
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data["severity"], "crisis")
+
+    def test_empty_and_oversized_chat_messages_rejected(self):
+        """Verify that empty whitespace or excessively large messages are rejected."""
+        # Empty message
+        res_empty = self.client.post("/chat", json={"message": "   "})
+        self.assertEqual(res_empty.status_code, 400)
+
+        # Oversized message (> 3000 chars)
+        res_large = self.client.post("/chat", json={"message": "A" * 3500})
+        self.assertEqual(res_large.status_code, 400)
+        self.assertIn("exceeds maximum allowed length", res_large.json()["detail"])
+
+    def test_readiness_probe(self):
+        """Verify GET /ready and GET /health endpoints report operational status."""
+        res_health = self.client.get("/health")
+        self.assertEqual(res_health.status_code, 200)
+        self.assertEqual(res_health.json()["status"], "ok")
+
+        res_ready = self.client.get("/ready")
+        self.assertEqual(res_ready.status_code, 200)
+        self.assertTrue(res_ready.json()["ready"])
+        self.assertEqual(res_ready.json()["database"], "reachable")
+
+    @patch("routes.chat.generate_ai_chat")
+    def test_chat_session_deletion_and_isolation(self, mock_ai):
+        """Verify user can delete their own session, but other users cannot."""
+        mock_ai.return_value = {"text": "Test message", "severity": "low", "suggestions": []}
+        session_id = f"delete-test-{uuid4()}"
+
+        # Alice creates session
+        self.client.post(
+            "/chat",
+            json={"message": "Session to be deleted", "session_id": session_id},
+            headers={"Authorization": f"Bearer {self.token_alice}"},
+        )
+
+        # Bob attempts to delete Alice's session
+        res_bob = self.client.delete(
+            f"/chat/session/{session_id}",
+            headers={"Authorization": f"Bearer {self.token_bob}"},
+        )
+        self.assertEqual(res_bob.status_code, 403)
+
+        # Alice deletes her session
+        res_alice = self.client.delete(
+            f"/chat/session/{session_id}",
+            headers={"Authorization": f"Bearer {self.token_alice}"},
+        )
+        self.assertEqual(res_alice.status_code, 200)
+        self.assertTrue(res_alice.json()["success"])
+
+    def test_ml_prediction_robustness(self):
+        """Verify ML severity prediction handles clean, empty, and crisis text safely."""
+        from services.ml_model import predict_severity
+        # Empty string
+        label, conf = predict_severity("")
+        self.assertEqual(label, "low")
+
+        # Explicit crisis text
+        label_crisis, conf_crisis = predict_severity("I am thinking about suicide and ending my life")
+        self.assertEqual(label_crisis, "crisis")
+        self.assertGreater(conf_crisis, 0.5)
+
+    def test_categorized_ai_fallbacks(self):
+        """Verify fallback generator returns correct emergency resources on crisis."""
+        from services.groq_client import get_fallback
+        fb_crisis = get_fallback("service_error", is_crisis=True)
+        self.assertEqual(fb_crisis["severity"], "crisis")
+        self.assertTrue(any("14416" in s for s in fb_crisis["suggestions"]))
+
+        fb_timeout = get_fallback("timeout", is_crisis=False)
+        self.assertEqual(fb_timeout["severity"], "low")
+        self.assertIn("longer than expected", fb_timeout["text"])
 
 
 if __name__ == "__main__":

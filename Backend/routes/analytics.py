@@ -24,6 +24,7 @@ from config import TRAIN_CSV_PATH
 from database import get_db, ChatSessionRow, UserRow, MoodEntryRow
 from services.ml_model import get_model_info
 from routes.auth import _resolve_current_user
+from services.rate_limit import rate_limiter
 
 router = APIRouter()
 
@@ -97,6 +98,7 @@ def analytics_plot():
 @router.get("/analytics/db-stats")
 def db_stats(request: Request, db: Session = Depends(get_db)):
     user = _resolve_current_user(request, db)
+    rate_limiter.enforce("analytics_user", f"user_{user.id}")
     if user.role not in ("admin", "counselor"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

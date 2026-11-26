@@ -189,7 +189,7 @@ const Index = () => {
         <div className="container flex h-16 items-center justify-between px-6 mx-auto">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0 hover:opacity-80 transition-opacity">
-            <img src="/ImpactAI_logo.png" alt="Impact AI" className="h-10 w-auto object-contain" />
+            <img src="/ImpactAI_logo.png" alt="Impact AI" className="h-11 md:h-12 w-auto max-w-[170px] object-contain" />
           </Link>
 
           {/* Desktop nav links */}

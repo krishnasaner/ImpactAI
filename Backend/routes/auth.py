@@ -1,7 +1,10 @@
 """Authentication routes for ImpactAI."""
 
+import logging
 from datetime import datetime, timedelta, timezone
 import hashlib
+
+logger = logging.getLogger(__name__)
 from typing import Optional
 from urllib.parse import urlencode
 from uuid import uuid4
@@ -38,9 +41,11 @@ from services.security import (
     decode_token,
     extract_token,
     hash_password,
+    hash_password_async,
     issue_csrf_token,
     validate_password_strength,
     verify_password_with_timing_defense,
+    verify_password_async,
 )
 
 auth_router = APIRouter()
@@ -269,7 +274,7 @@ def csrf_token(response: Response):
 
 
 @auth_router.post("/signup", response_model=AuthResponse)
-def signup(
+async def signup(
     request: SignupRequest,
     http_request: Request,
     response: Response,
@@ -299,38 +304,50 @@ def signup(
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered.")
 
-    user = UserRow(
-        email=normalized_email,
-        hashed_password=hash_password(request.password),
-        role=request.role,
-        name=request.name or normalized_email.split("@", 1)[0],
-        created_at=datetime.now(timezone.utc),
-        is_verified=0,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    hashed_pwd = await hash_password_async(request.password)
 
-    access_token, refresh_token, _ = _create_user_session(
-        db, user, bool(request.remember_me), ip, ua
-    )
-    _set_auth_cookies(response, access_token, refresh_token, bool(request.remember_me))
+    try:
+        user = UserRow(
+            email=normalized_email,
+            hashed_password=hashed_pwd,
+            role=request.role,
+            name=request.name or normalized_email.split("@", 1)[0],
+            created_at=datetime.now(timezone.utc),
+            is_verified=0,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
-    log_audit_event(db, "SIGNUP", f"User signed up: {normalized_email}", user.id, ip, ua)
-    db.commit()
+        access_token, refresh_token, _ = _create_user_session(
+            db, user, bool(request.remember_me), ip, ua
+        )
+        _set_auth_cookies(response, access_token, refresh_token, bool(request.remember_me))
 
-    built_user = _build_user_response(user)
-    return {
-        "success": True,
-        "message": "Signup successful.",
-        "user": built_user,
-        "token": None,
-        "data": {"user": built_user},
-    }
+        log_audit_event(db, "SIGNUP", f"User signed up: {normalized_email}", user.id, ip, ua)
+        db.commit()
+
+        built_user = _build_user_response(user)
+        return {
+            "success": True,
+            "message": "Signup successful.",
+            "user": built_user,
+            "token": None,
+            "data": {"user": built_user},
+        }
+    except Exception as exc:
+        db.rollback()
+        if isinstance(exc, HTTPException):
+            raise exc
+        logger.error("Signup error: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Signup failed due to internal error.",
+        )
 
 
 @auth_router.post("/login", response_model=AuthResponse)
-def login(
+async def login(
     request: LoginRequest,
     http_request: Request,
     response: Response,
@@ -345,7 +362,7 @@ def login(
 
     user = db.query(UserRow).filter(UserRow.email == normalized_email).first()
     if not user:
-        verify_password_with_timing_defense(request.password, None)
+        await verify_password_async(request.password, None)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=generic_error)
 
     lockout_until = _to_utc(user.lockout_until)
@@ -366,10 +383,11 @@ def login(
         )
 
     if request.role != user.role:
-        verify_password_with_timing_defense(request.password, user.hashed_password)
+        await verify_password_async(request.password, user.hashed_password)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=generic_error)
 
-    if not verify_password_with_timing_defense(request.password, user.hashed_password):
+    valid_password = await verify_password_async(request.password, user.hashed_password)
+    if not valid_password:
         user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
         log_audit_event(db, "FAILED_LOGIN", f"Failed login attempt for {normalized_email}", user.id, ip, ua)
         if user.failed_login_attempts >= 5:
@@ -386,27 +404,37 @@ def login(
         db.commit()
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=generic_error)
 
-    user.failed_login_attempts = 0
-    user.lockout_until = None
-    user.last_login_at = datetime.now(timezone.utc)
-    db.commit()
+    try:
+        user.failed_login_attempts = 0
+        user.lockout_until = None
+        user.last_login_at = datetime.now(timezone.utc)
+        db.commit()
 
-    access_token, refresh_token, _ = _create_user_session(
-        db, user, bool(request.remember_me), ip, ua
-    )
-    _set_auth_cookies(response, access_token, refresh_token, bool(request.remember_me))
+        access_token, refresh_token, _ = _create_user_session(
+            db, user, bool(request.remember_me), ip, ua
+        )
+        _set_auth_cookies(response, access_token, refresh_token, bool(request.remember_me))
 
-    log_audit_event(db, "LOGIN", f"User logged in: {normalized_email}", user.id, ip, ua)
-    db.commit()
+        log_audit_event(db, "LOGIN", f"User logged in: {normalized_email}", user.id, ip, ua)
+        db.commit()
 
-    built_user = _build_user_response(user)
-    return {
-        "success": True,
-        "message": "Login successful.",
-        "user": built_user,
-        "token": None,
-        "data": {"user": built_user},
-    }
+        built_user = _build_user_response(user)
+        return {
+            "success": True,
+            "message": "Login successful.",
+            "user": built_user,
+            "token": None,
+            "data": {"user": built_user},
+        }
+    except Exception as exc:
+        db.rollback()
+        if isinstance(exc, HTTPException):
+            raise exc
+        logger.error("Login session creation error: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Login failed due to session initialization error.",
+        )
 
 
 @auth_router.get("/me")

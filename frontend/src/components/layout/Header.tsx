@@ -71,70 +71,18 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b-2 border-black bg-white">
       <div className="container flex h-16 items-center justify-between px-6">
-        {isAppShell && user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white/80 px-3 py-2 text-left transition-all hover:border-primary/40 hover:bg-primary/5 dark:border-gray-800 dark:bg-gray-950/80 dark:hover:border-primary/30">
-                <Avatar className="h-10 w-10 border border-primary/20">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="bg-primary/10 font-semibold text-primary">
-                    {getInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden sm:block">
-                  <div className="text-sm font-semibold text-foreground">
-                    {user.isAnonymous ? 'Anonymous Session' : user.name}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {user.isAnonymous ? 'Private support mode' : 'Profile and account'}
-                  </div>
-                </div>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-60">
-              <DropdownMenuItem asChild>
-                <Link to="/app/profile">
-                  <UserCircle2 className="mr-2 h-4 w-4" />
-                  View profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/app/booking?mode=anonymous">
-                  <Shield className="mr-2 h-4 w-4" />
-                  Continue anonymously
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/app/theme-settings">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Appearance settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/app/notifications">
-                  <Bell className="mr-2 h-4 w-4" />
-                  Notifications
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <Link
-            to="/"
-            className="flex items-center shrink-0 group transition-all duration-300 hover:opacity-80"
-          >
-            <img
-              src="/ImpactAI_logo.png"
-              alt="Impact AI"
-              className="h-12 md:h-14 w-auto object-contain"
-            />
-          </Link>
-        )}
+        {/* Brand Logo - standardized 160-185px desktop, 135-150px mobile */}
+        <Link
+          to={isAppShell ? '/app/dashboard' : '/'}
+          className="flex items-center shrink-0 group transition-all duration-300 hover:opacity-90"
+          aria-label="ImpactAI Home"
+        >
+          <img
+            src="/ImpactAI_logo.png"
+            alt="ImpactAI"
+            className="h-10 md:h-12 w-auto max-w-[145px] md:max-w-[180px] object-contain"
+          />
+        </Link>
 
         {isAppShell && (
           <nav className="ml-10 hidden items-center space-x-1 text-sm font-medium lg:flex">
@@ -168,10 +116,54 @@ const Header = () => {
           )}
 
           {isAppShell && user && (
-            <Button variant="outline" className="hidden md:inline-flex" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white/80 px-2.5 py-1.5 text-left transition-all hover:border-primary/40 hover:bg-primary/5 dark:border-gray-800 dark:bg-gray-950/80">
+                  <Avatar className="h-8 w-8 border border-primary/20">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+                      {getInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden xl:block">
+                    <div className="text-xs font-semibold text-foreground">
+                      {user.isAnonymous ? 'Anonymous' : user.name}
+                    </div>
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-60">
+                <DropdownMenuItem asChild>
+                  <Link to="/app/profile">
+                    <UserCircle2 className="mr-2 h-4 w-4" />
+                    View profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/app/booking?mode=anonymous">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Continue anonymously
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/app/theme-settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Appearance settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/app/notifications">
+                    <Bell className="mr-2 h-4 w-4" />
+                    Notifications
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
 
           {isAppShell && (
@@ -190,6 +182,13 @@ const Header = () => {
       {isMobileMenuOpen && (
         <div className="border-t border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-950 lg:hidden">
           <div className="container px-6 py-4">
+            <div className="flex items-center justify-between pb-3 mb-2 border-b border-gray-100 dark:border-gray-800">
+              <img
+                src="/ImpactAI_logo.png"
+                alt="ImpactAI"
+                className="h-8 w-auto max-w-[135px] object-contain"
+              />
+            </div>
             <nav className="flex flex-col space-y-1">
               {isAppShell &&
                 navItems.map((item) => (

@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
+import asyncio
 import re
 import secrets
 
@@ -42,6 +43,10 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(pwd_bytes, bcrypt.gensalt(rounds=12)).decode("utf-8")
 
 
+async def hash_password_async(password: str) -> str:
+    return await asyncio.to_thread(hash_password, password)
+
+
 def verify_password_with_timing_defense(
     plain_password: str,
     hashed_password: Optional[str],
@@ -54,6 +59,15 @@ def verify_password_with_timing_defense(
         return bcrypt.checkpw(pwd_bytes, hashed_password.encode("utf-8"))
     except Exception:
         return False
+
+
+async def verify_password_async(
+    plain_password: str,
+    hashed_password: Optional[str],
+) -> bool:
+    return await asyncio.to_thread(
+        verify_password_with_timing_defense, plain_password, hashed_password
+    )
 
 
 def validate_password_strength(password: str) -> Tuple[bool, str]:

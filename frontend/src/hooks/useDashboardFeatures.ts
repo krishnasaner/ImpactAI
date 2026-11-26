@@ -1,7 +1,7 @@
 // Utility functions for Student Dashboard functionality
 
 import { useState, useEffect } from 'react';
-import api from '@/services/api';
+import api, { wellnessService } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Types
@@ -155,27 +155,57 @@ export const useGoals = (): {
   addGoal: (title: string, description: string, targetDate: string, category: Goal['category']) => void;
   updateGoalProgress: (id: string, progress: number) => void;
   completeGoal: (id: string) => void;
+  deleteGoal: (id: string) => void;
   getActiveGoals: () => Goal[];
   getCompletedGoals: () => Goal[];
   getWeeklyGoalProgress: () => number;
 } => {
   const [goals, setGoals] = useState<Goal[]>([]);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    const storedGoals = localStorage.getItem('user_goals');
-    if (storedGoals) {
-      setGoals(JSON.parse(storedGoals));
-    }
-  }, []);
+    const loadGoals = async () => {
+      if (isAuthenticated) {
+        try {
+          const res = await wellnessService.getPlans();
+          if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+            const formatted: Goal[] = res.data.map((p: any) => ({
+              id: String(p.id),
+              title: p.title,
+              description: p.description || '',
+              targetDate: p.target_date ? p.target_date.split('T')[0] : '',
+              completed: p.status === 'completed',
+              progress: p.activities?.[0]?.progress || (p.status === 'completed' ? 100 : 0),
+              category: (p.category || 'wellness') as Goal['category'],
+              createdAt: new Date(p.created_at).getTime(),
+            }));
+            setGoals(formatted);
+            localStorage.setItem('user_goals', JSON.stringify(formatted));
+            return;
+          }
+        } catch (err) {
+          console.error('Failed to load wellness plans from backend:', err);
+        }
+      }
 
-  const addGoal = (
+      const storedGoals = localStorage.getItem('user_goals');
+      if (storedGoals) {
+        setGoals(JSON.parse(storedGoals));
+      }
+    };
+
+    void loadGoals();
+  }, [isAuthenticated]);
+
+  const addGoal = async (
     title: string,
     description: string,
     targetDate: string,
     category: Goal['category']
   ) => {
+    const tempId = Date.now().toString();
     const newGoal: Goal = {
-      id: Date.now().toString(),
+      id: tempId,
       title,
       description,
       targetDate,
@@ -188,31 +218,64 @@ export const useGoals = (): {
     const updatedGoals = [...goals, newGoal];
     setGoals(updatedGoals);
     localStorage.setItem('user_goals', JSON.stringify(updatedGoals));
+
+    if (isAuthenticated) {
+      try {
+        const res = await wellnessService.createPlan({
+          title,
+          description,
+          category,
+          target_date: targetDate ? new Date(targetDate).toISOString() : null,
+          activities: [{ title, frequency: 'daily' }],
+        });
+        if (res.data?.id) {
+          const syncedGoals = updatedGoals.map((g) =>
+            g.id === tempId ? { ...g, id: String(res.data.id) } : g
+          );
+          setGoals(syncedGoals);
+          localStorage.setItem('user_goals', JSON.stringify(syncedGoals));
+        }
+      } catch (err) {
+        console.error('Failed to save goal to backend:', err);
+      }
+    }
   };
 
-  const updateGoalProgress = (id: string, progress: number) => {
+  const updateGoalProgress = async (id: string, progress: number) => {
     const updatedGoals = goals.map((goal) =>
       goal.id === id ? { ...goal, progress, completed: progress >= 100 } : goal
     );
     setGoals(updatedGoals);
     localStorage.setItem('user_goals', JSON.stringify(updatedGoals));
+
+    if (isAuthenticated && !id.startsWith('temp_')) {
+      try {
+        await wellnessService.updatePlan(Number(id), {
+          status: progress >= 100 ? 'completed' : 'active',
+        });
+      } catch (err) {
+        console.error('Failed to update goal progress on backend:', err);
+      }
+    }
   };
 
-  const completeGoal = (id: string) => {
-    const updatedGoals = goals.map((goal) =>
-      goal.id === id ? { ...goal, completed: true, progress: 100 } : goal
-    );
-    setGoals(updatedGoals);
-    localStorage.setItem('user_goals', JSON.stringify(updatedGoals));
+  const completeGoal = async (id: string) => {
+    await updateGoalProgress(id, 100);
   };
 
-  // --- ADD THIS FUNCTION ---
-  const deleteGoal = (id: string) => {
+  const deleteGoal = async (id: string) => {
     const updatedGoals = goals.filter((goal) => goal.id !== id);
     setGoals(updatedGoals);
     localStorage.setItem('user_goals', JSON.stringify(updatedGoals));
+
+    if (isAuthenticated && !id.startsWith('temp_')) {
+      try {
+        await wellnessService.deletePlan(Number(id));
+      } catch (err) {
+        console.error('Failed to delete goal on backend:', err);
+      }
+    }
   };
-  // --- END OF ADDED FUNCTION ---
 
   const getActiveGoals = () => goals.filter((g) => !g.completed);
   const getCompletedGoals = () => goals.filter((g) => g.completed);
